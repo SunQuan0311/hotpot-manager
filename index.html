@@ -67,7 +67,7 @@ input:focus,select:focus{outline:none;border-color:var(--o);background:#fff}
 .toast{position:fixed;top:70px;left:50%;transform:translateX(-50%);background:#333;color:#fff;padding:8px 20px;border-radius:20px;font-size:.8rem;z-index:200;opacity:0;transition:opacity .3s}
 .toast.show{opacity:1}
 
-.login-page{position:fixed;inset:0;z-index:1000;background:linear-gradient(180deg,rgba(139,0,0,.85) 0%,rgba(196,30,30,.8) 30%,rgba(212,68,42,.75) 50%,rgba(232,117,58,.7) 70%,rgba(245,166,35,.65) 100%),url(bg_login.jpg) center/cover;display:flex;flex-direction:column;align-items:center;justify-content:center;color:#fff}
+.login-page{position:fixed;inset:0;z-index:1000;background:url(bg_login.jpg) center/cover no-repeat;display:flex;flex-direction:column;align-items:center;justify-content:center;color:#fff}
 .login-page.hidden{display:none}
 .login-bg{position:absolute;inset:0;background:radial-gradient(ellipse at 50% 40%,rgba(255,215,0,.15) 0%,transparent 60%),radial-gradient(circle at 20% 80%,rgba(255,107,53,.2) 0%,transparent 40%),radial-gradient(circle at 80% 70%,rgba(255,69,0,.15) 0%,transparent 35%);pointer-events:none}
 .login-card{position:relative;z-index:1;background:rgba(0,0,0,.35);backdrop-filter:blur(10px);border-radius:16px;padding:32px 24px;width:calc(100% - 48px);max-width:340px;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,.3);border:1px solid rgba(255,255,255,.15)}
@@ -890,20 +890,12 @@ function checkLogin(){
   }
 }
 renderNumpad();
-// Auto-login if previously authenticated
 if(sessionStorage.getItem('loggedIn')==='1'){
   document.getElementById('loginPage').classList.add('hidden');
   initApp();
 }
-// Save login state on success
 function afterLogin(){
   sessionStorage.setItem('loggedIn','1');
-  initApp();
-}
-
-// Auto-login if already passed (PWA)
-if(sessionStorage.getItem('loggedIn')==='1'){
-  document.getElementById('loginPage').classList.add('hidden');
   initApp();
 }
 
