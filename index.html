@@ -6,7 +6,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="theme-color" content="#ff6b35">
-<title>火锅店管理</title>
+<title>火锅店管理 v2</title>
 <link rel="manifest" href="manifest.json">
 <script>if('serviceWorker' in navigator){navigator.serviceWorker.register('sw.js')}</script>
 <style>
@@ -317,18 +317,19 @@ async function loadSZList(){
     </div>`).join('');
 }
 
-async function updateSZCat(){
+function updateSZCat(){
   const type=document.getElementById('m-sz-type').value;
   const catSelect=document.getElementById('m-sz-cat');
   const incomeCats=['营业收入','其他收入'];
   const expenseCats=['食材采购','设备维修','水电费','工资支出','房租','其他支出'];
-  const cats=type==='收入'?incomeCats:type==='支出'?expenseCats:[];
-  catSelect.innerHTML='<option value="">选择分类</option>'+cats.map(c=>`<option value="${c}">${c}</option>`).join('');
+  const cats=type==='收入'?incomeCats:type==='支出'?expenseCats:['请先选择类型'];
+  catSelect.innerHTML=cats.map(c=>`<option value="${c}">${c}</option>`).join('');
 }
 async function openSZModal(id){
   document.getElementById('m-sz-id').value='';
   document.getElementById('modal-sz-title').textContent='新增收支';
-  document.getElementById('m-sz-type').value='';updateSZCat();
+  document.getElementById('m-sz-type').value='';
+  document.getElementById('m-sz-cat').innerHTML='<option value="">请先选择类型</option>';
   document.getElementById('m-sz-amt').value='';document.getElementById('m-sz-date').value=new Date().toISOString().split('T')[0];
   document.getElementById('m-sz-person').value='';document.getElementById('m-sz-note').value='';
   if(id){
@@ -336,8 +337,9 @@ async function openSZModal(id){
     const item=await dbGet('sz',id);
     if(item){
       document.getElementById('m-sz-id').value=item.id;
-      document.getElementById('m-sz-type').value=item.type||'';updateSZCat();
-      setTimeout(()=>{document.getElementById('m-sz-cat').value=item.cat||''},50);
+      document.getElementById('m-sz-type').value=item.type||'';
+      updateSZCat();
+      document.getElementById('m-sz-cat').value=item.cat||'';
       document.getElementById('m-sz-amt').value=item.amount||'';
       document.getElementById('m-sz-date').value=item.date||'';
       document.getElementById('m-sz-person').value=item.person||'';
@@ -354,7 +356,7 @@ async function saveSZ(){
     cat:document.getElementById('m-sz-cat').value.trim(),
     amount:parseFloat(document.getElementById('m-sz-amt').value)||0,
     date:document.getElementById('m-sz-date').value,
-    pay:document.getElementById('m-sz-pay').value,
+    pay:document.getElementById('m-sz-pay').value||'',
     person:document.getElementById('m-sz-person').value.trim(),
     note:document.getElementById('m-sz-note').value.trim()
   };
