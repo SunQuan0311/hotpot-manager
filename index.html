@@ -278,8 +278,8 @@ function t(m){const e=document.getElementById('toast');e.textContent=m;e.classLi
 function f(n){return n==null||isNaN(n)?'0.00':Number(n).toFixed(2)}
 function fd(d){if(!d)return'';return new Date(d).toLocaleDateString('zh-CN')}
 function gm(d){return d?d.substring(0,7):''}
-function cm(id){document.getElementById(id).classList.remove('show')}
-function om(id){document.getElementById(id).classList.add('show')}
+function closeModal(id){document.getElementById(id).classList.remove('show')}
+function openModal(id){document.getElementById(id).classList.add('show')}
 
 // ====== TABS ======
 function switchTab(t){
@@ -327,14 +327,14 @@ async function openSZModal(id){
   document.getElementById('m-sz-amt').value='';document.getElementById('m-sz-date').value=new Date().toISOString().split('T')[0];
   document.getElementById('m-sz-pay').value='';document.getElementById('m-sz-person').value='';document.getElementById('m-sz-note').value='';
   if(id){document.getElementById('modal-sz-title').textContent='编辑收支';const i=await db1('sz',id);if(i){document.getElementById('m-sz-id').value=i.id;document.getElementById('m-sz-type').value=i.type||'';updateSZCat();document.getElementById('m-sz-cat').value=i.cat||'';document.getElementById('m-sz-amt').value=i.amount||'';document.getElementById('m-sz-date').value=i.date||'';document.getElementById('m-sz-pay').value=i.pay||'';document.getElementById('m-sz-person').value=i.person||'';document.getElementById('m-sz-note').value=i.note||''}}
-  om('modal-sz');
+  openModal('modal-sz');
 }
 async function saveSZ(){
   const id=document.getElementById('m-sz-id').value;
   const data={type:document.getElementById('m-sz-type').value,cat:document.getElementById('m-sz-cat').value,amount:parseFloat(document.getElementById('m-sz-amt').value)||0,date:document.getElementById('m-sz-date').value,pay:document.getElementById('m-sz-pay').value,person:document.getElementById('m-sz-person').value.trim(),note:document.getElementById('m-sz-note').value.trim()};
   if(!data.type||!data.amount){t('请填写类型和金额');return}
   if(id){data.id=parseInt(id);await dbp('sz',data)}else{await dba('sz',data)}
-  cm('modal-sz');loadSZList();t('已保存');
+  closeModal('modal-sz');loadSZList();t('已保存');
 }
 async function editSZ(id){openSZModal(id)}
 async function deleteSZ(id){if(confirm('确认删除？')){await dbd('sz',id);loadSZList();t('已删除')}}
@@ -349,14 +349,14 @@ async function openYGModal(id){
   document.getElementById('m-yg-id').value='';document.getElementById('modal-yg-title').textContent='新增员工';
   document.getElementById('m-yg-name').value='';document.getElementById('m-yg-role').value='';document.getElementById('m-yg-salary').value='';document.getElementById('m-yg-join').value='';document.getElementById('m-yg-health').value='';document.getElementById('m-yg-note').value='';
   if(id){document.getElementById('modal-yg-title').textContent='编辑员工';const i=await db1('yg',id);if(i){document.getElementById('m-yg-id').value=i.id;document.getElementById('m-yg-name').value=i.name||'';document.getElementById('m-yg-role').value=i.role||'';document.getElementById('m-yg-salary').value=i.salary||'';document.getElementById('m-yg-join').value=i.joinDate||'';document.getElementById('m-yg-health').value=i.health||'';document.getElementById('m-yg-note').value=i.note||''}}
-  om('modal-yg');
+  openModal('modal-yg');
 }
 async function saveYG(){
   const id=document.getElementById('m-yg-id').value;
   const data={name:document.getElementById('m-yg-name').value.trim(),role:document.getElementById('m-yg-role').value.trim(),salary:parseFloat(document.getElementById('m-yg-salary').value)||0,joinDate:document.getElementById('m-yg-join').value,health:document.getElementById('m-yg-health').value.trim(),note:document.getElementById('m-yg-note').value.trim()};
   if(!data.name){t('请输入员工姓名');return}
   if(id){data.id=parseInt(id);await dbp('yg',data)}else{await dba('yg',data)}
-  cm('modal-yg');loadYGList();refreshDrops();t('已保存');
+  closeModal('modal-yg');loadYGList();refreshDrops();t('已保存');
 }
 async function editYG(id){openYGModal(id)}
 async function deleteYG(id){if(confirm('确认删除？')){await dbd('yg',id);loadYGList();t('已删除')}}
@@ -374,7 +374,7 @@ async function saveLeave(){
   const emp=await db1('yg',eid);
   const data={empId:eid,empName:emp?emp.name:'',type:document.getElementById('m-leave-type').value,startDate:document.getElementById('m-leave-start').value,endDate:document.getElementById('m-leave-end').value,days:parseFloat(document.getElementById('m-leave-days').value)||0};
   if(!data.empId||!data.type){t('请选择员工和类型');return}
-  await dba('leave',data);cm('modal-leave');loadLeaveList();loadAttendList();t('已保存');
+  await dba('leave',data);closeModal('modal-leave');loadLeaveList();loadAttendList();t('已保存');
 }
 async function loadLeaveList(){
   const data=await dbg('leave');const list=document.getElementById('yg-leave-list');
@@ -395,7 +395,7 @@ function ygSubTab(t){
   document.getElementById('yg-leave-list').style.display=t==='leave'?'block':'none';
   document.getElementById('yg-attend-list').style.display=t==='attend'?'block':'none';
   document.getElementById('yg-fab').style.display=t==='attend'?'none':'flex';
-  document.getElementById('yg-fab').onclick=t==='info'?()=>openYGModal():()=>om('modal-leave');
+  document.getElementById('yg-fab').onclick=t==='info'?()=>openYGModal():()=>openModal('modal-leave');
   const btns=document.querySelectorAll('#yg-subtabs button');btns.forEach(b=>b.classList.remove('active'));
   btns[{info:0,leave:1,attend:2}[t]].classList.add('active');
   if(t==='info')loadYGList();if(t==='leave'){loadLeaveList();refreshDrops()}if(t==='attend')loadAttendList();
@@ -433,43 +433,43 @@ function kcSubTab(t){
   document.getElementById('kc-bom-list').style.display=t==='bom'?'block':'none';
   document.getElementById('kc-prodrec-list').style.display=t==='prodrec'?'block':'none';
   const fab=document.getElementById('kc-fab');fab.style.display='flex';
-  fab.onclick=t==='ingredient'?()=>{document.getElementById('m-ing-id').value='';document.getElementById('modal-kc-ing-title').textContent='新增食材';document.getElementById('m-ing-name').value='';document.getElementById('m-ing-cat').value='';document.getElementById('m-ing-unit').value='';document.getElementById('m-ing-stock').value='';document.getElementById('m-ing-warn').value='';document.getElementById('m-ing-note').value='';om('modal-kc-ing')}:t==='product'?()=>{document.getElementById('m-prod-id').value='';document.getElementById('modal-kc-prod-title').textContent='新增产品';document.getElementById('m-prod-name').value='';document.getElementById('m-prod-cat').value='';document.getElementById('m-prod-price').value='';document.getElementById('m-prod-note').value='';om('modal-kc-prod')}:t==='bom'?()=>{refreshDrops();om('modal-kc-bom')}:()=>openProdRecModal();
+  fab.onclick=t==='ingredient'?()=>{document.getElementById('m-ing-id').value='';document.getElementById('modal-kc-ing-title').textContent='新增食材';document.getElementById('m-ing-name').value='';document.getElementById('m-ing-cat').value='';document.getElementById('m-ing-unit').value='';document.getElementById('m-ing-stock').value='';document.getElementById('m-ing-warn').value='';document.getElementById('m-ing-note').value='';openModal('modal-kc-ing')}:t==='product'?()=>{document.getElementById('m-prod-id').value='';document.getElementById('modal-kc-prod-title').textContent='新增产品';document.getElementById('m-prod-name').value='';document.getElementById('m-prod-cat').value='';document.getElementById('m-prod-price').value='';document.getElementById('m-prod-note').value='';openModal('modal-kc-prod')}:t==='bom'?()=>{refreshDrops();openModal('modal-kc-bom')}:()=>openProdRecModal();
   document.querySelectorAll('#kc-subtabs button').forEach(b=>b.classList.remove('active'));
   document.querySelectorAll('#kc-subtabs button')[({ingredient:0,product:1,bom:2,prodrec:3}[t])].classList.add('active');
   if(t==='ingredient')loadKCIngredients();if(t==='product')loadKCProducts();if(t==='bom'){loadKCBOMs();refreshDrops()}if(t==='prodrec'){loadProdRecList();refreshDrops()}
 }
 // Ingredient CRUD
-async function editIngredient(id){const i=await db1('ingredient',id);if(i){document.getElementById('m-ing-id').value=i.id;document.getElementById('modal-kc-ing-title').textContent='编辑食材';document.getElementById('m-ing-name').value=i.name||'';document.getElementById('m-ing-cat').value=i.cat||'';document.getElementById('m-ing-unit').value=i.unit||'';document.getElementById('m-ing-stock').value=i.currentStock||'';document.getElementById('m-ing-warn').value=i.warnLevel||'';document.getElementById('m-ing-note').value=i.note||'';om('modal-kc-ing')}}
+async function editIngredient(id){const i=await db1('ingredient',id);if(i){document.getElementById('m-ing-id').value=i.id;document.getElementById('modal-kc-ing-title').textContent='编辑食材';document.getElementById('m-ing-name').value=i.name||'';document.getElementById('m-ing-cat').value=i.cat||'';document.getElementById('m-ing-unit').value=i.unit||'';document.getElementById('m-ing-stock').value=i.currentStock||'';document.getElementById('m-ing-warn').value=i.warnLevel||'';document.getElementById('m-ing-note').value=i.note||'';openModal('modal-kc-ing')}}
 async function saveIngredient(){
   const id=document.getElementById('m-ing-id').value;const data={name:document.getElementById('m-ing-name').value.trim(),cat:document.getElementById('m-ing-cat').value.trim(),unit:document.getElementById('m-ing-unit').value.trim(),currentStock:parseFloat(document.getElementById('m-ing-stock').value)||0,warnLevel:parseFloat(document.getElementById('m-ing-warn').value)||0,note:document.getElementById('m-ing-note').value.trim()};
   if(!data.name){t('请输入食材名称');return}
   if(id){data.id=parseInt(id);await dbp('ingredient',data)}else{await dba('ingredient',data)}
-  cm('modal-kc-ing');loadKCIngredients();t('已保存');
+  closeModal('modal-kc-ing');loadKCIngredients();t('已保存');
 }
 async function deleteIngredient(id){if(confirm('确认删除？')){await dbd('ingredient',id);loadKCIngredients();t('已删除')}}
 // Product CRUD
-async function editProduct(id){const i=await db1('product',id);if(i){document.getElementById('m-prod-id').value=i.id;document.getElementById('modal-kc-prod-title').textContent='编辑产品';document.getElementById('m-prod-name').value=i.name||'';document.getElementById('m-prod-cat').value=i.cat||'';document.getElementById('m-prod-price').value=i.price||'';document.getElementById('m-prod-note').value=i.note||'';om('modal-kc-prod')}}
+async function editProduct(id){const i=await db1('product',id);if(i){document.getElementById('m-prod-id').value=i.id;document.getElementById('modal-kc-prod-title').textContent='编辑产品';document.getElementById('m-prod-name').value=i.name||'';document.getElementById('m-prod-cat').value=i.cat||'';document.getElementById('m-prod-price').value=i.price||'';document.getElementById('m-prod-note').value=i.note||'';openModal('modal-kc-prod')}}
 async function saveProduct(){
   const id=document.getElementById('m-prod-id').value;const data={name:document.getElementById('m-prod-name').value.trim(),cat:document.getElementById('m-prod-cat').value.trim(),price:parseFloat(document.getElementById('m-prod-price').value)||0,note:document.getElementById('m-prod-note').value.trim()};
   if(!data.name){t('请输入产品名称');return}
   if(id){data.id=parseInt(id);await dbp('product',data)}else{await dba('product',data)}
-  cm('modal-kc-prod');loadKCProducts();t('已保存');
+  closeModal('modal-kc-prod');loadKCProducts();t('已保存');
 }
 async function deleteProduct(id){if(confirm('确认删除？')){await dbd('product',id);loadKCProducts();t('已删除')}}
 // BOM
-async function saveBOM(){const data={productId:parseInt(document.getElementById('m-bom-prod').value)||0,ingredientId:parseInt(document.getElementById('m-bom-ing').value)||0,qty:parseFloat(document.getElementById('m-bom-qty').value)||0,unit:document.getElementById('m-bom-unit').value.trim(),note:document.getElementById('m-bom-note').value.trim()};if(!data.productId||!data.ingredientId){t('请选择产品和食材');return}await dba('bom',data);cm('modal-kc-bom');loadKCBOMs();t('已保存')}
+async function saveBOM(){const data={productId:parseInt(document.getElementById('m-bom-prod').value)||0,ingredientId:parseInt(document.getElementById('m-bom-ing').value)||0,qty:parseFloat(document.getElementById('m-bom-qty').value)||0,unit:document.getElementById('m-bom-unit').value.trim(),note:document.getElementById('m-bom-note').value.trim()};if(!data.productId||!data.ingredientId){t('请选择产品和食材');return}await dba('bom',data);closeModal('modal-kc-bom');loadKCBOMs();t('已保存')}
 async function deleteBOM(id){if(confirm('确认删除？')){await dbd('bom',id);loadKCBOMs();t('已删除')}}
 // Stock IO
-async function stockIO(ingId,type){document.getElementById('m-io-type').value=type;document.getElementById('m-io-ing').value=ingId;document.getElementById('m-io-qty').value='';document.getElementById('m-io-date').value=new Date().toISOString().split('T')[0];document.getElementById('m-io-note').value='';refreshDrops();om('modal-stock-io')}
+async function stockIO(ingId,type){document.getElementById('m-io-type').value=type;document.getElementById('m-io-ing').value=ingId;document.getElementById('m-io-qty').value='';document.getElementById('m-io-date').value=new Date().toISOString().split('T')[0];document.getElementById('m-io-note').value='';refreshDrops();openModal('modal-stock-io')}
 async function saveStockIO(){
   const ingId=parseInt(document.getElementById('m-io-ing').value);const type=document.getElementById('m-io-type').value;const qty=parseFloat(document.getElementById('m-io-qty').value)||0;
   if(!qty){t('请输入数量');return}
   const ing=await db1('ingredient',ingId);if(ing){ing.currentStock=Math.max(0,(ing.currentStock||0)+(type==='入库'?qty:-qty));await dbp('ingredient',ing)}
   await dba('stockio',{ingredientId:ingId,type,qty,date:document.getElementById('m-io-date').value,note:document.getElementById('m-io-note').value.trim()});
-  cm('modal-stock-io');loadKCIngredients();t(type+'成功');
+  closeModal('modal-stock-io');loadKCIngredients();t(type+'成功');
 }
 // Production Record
-async function openProdRecModal(){document.getElementById('m-prodrec-qty').value='';document.getElementById('m-prodrec-date').value=new Date().toISOString().split('T')[0];document.getElementById('m-prodrec-note').value='';document.getElementById('m-prodrec-preview').innerHTML='';refreshDrops();om('modal-prodrec')}
+async function openProdRecModal(){document.getElementById('m-prodrec-qty').value='';document.getElementById('m-prodrec-date').value=new Date().toISOString().split('T')[0];document.getElementById('m-prodrec-note').value='';document.getElementById('m-prodrec-preview').innerHTML='';refreshDrops();openModal('modal-prodrec')}
 async function previewProdCost(){
   const pid=parseInt(document.getElementById('m-prodrec-prod').value);const qty=parseInt(document.getElementById('m-prodrec-qty').value)||0;const preview=document.getElementById('m-prodrec-preview');
   if(!pid||!qty){preview.innerHTML='';return}
@@ -487,7 +487,7 @@ async function saveProdRec(){
     const ing=await db1('ingredient',b.ingredientId);if(ing){const consume=(b.qty||0)*qty;ing.currentStock=Math.max(0,(ing.currentStock||0)-consume);await dbp('ingredient',ing);await dba('stockio',{ingredientId:b.ingredientId,type:'出库',qty:consume,date,note:'生产'+prod.name+'自动扣减'});totalCost+=consume*5}
   }
   await dba('prodrec',{productId:pid,productName:prod?prod.name:'',qty,date,note:document.getElementById('m-prodrec-note').value.trim(),estimatedCost:totalCost});
-  cm('modal-prodrec');loadProdRecList();loadKCIngredients();t('已保存，食材已扣减');
+  closeModal('modal-prodrec');loadProdRecList();loadKCIngredients();t('已保存，食材已扣减');
 }
 async function deleteProdRec(id){if(confirm('确认删除？已扣减食材不会恢复')){await dbd('prodrec',id);loadProdRecList();t('已删除')}}
 
@@ -510,8 +510,8 @@ async function loadReport(){
 function bbSubTab(t){const btns=document.querySelectorAll('#bb-subtabs button');btns.forEach(b=>b.classList.remove('active'));btns[{sz:0,salary:1,stock:2}[t]].classList.add('active');loadReport()}
 
 // Budget
-async function setBudget(){const now=new Date().toISOString().split('T')[0].substring(0,7);document.getElementById('m-budget-month').value=now;document.getElementById('m-budget-amt').value='';const bs=await dbg('budget');const ex=bs.find(b=>b.month===now);if(ex)document.getElementById('m-budget-amt').value=ex.amount;om('modal-budget')}
-async function saveBudget(){const month=document.getElementById('m-budget-month').value;const amt=parseFloat(document.getElementById('m-budget-amt').value)||0;if(!month||!amt){t('请选择月份和金额');return}const bs=await dbg('budget');const ex=bs.find(b=>b.month===month);if(ex){ex.amount=amt;await dbp('budget',ex)}else{await dba('budget',{month,amount:amt})}cm('modal-budget');loadSZList();t('预算已保存')}
+async function setBudget(){const now=new Date().toISOString().split('T')[0].substring(0,7);document.getElementById('m-budget-month').value=now;document.getElementById('m-budget-amt').value='';const bs=await dbg('budget');const ex=bs.find(b=>b.month===now);if(ex)document.getElementById('m-budget-amt').value=ex.amount;openModal('modal-budget')}
+async function saveBudget(){const month=document.getElementById('m-budget-month').value;const amt=parseFloat(document.getElementById('m-budget-amt').value)||0;if(!month||!amt){t('请选择月份和金额');return}const bs=await dbg('budget');const ex=bs.find(b=>b.month===month);if(ex){ex.amount=amt;await dbp('budget',ex)}else{await dba('budget',{month,amount:amt})}closeModal('modal-budget');loadSZList();t('预算已保存')}
 
 // CSV Export
 async function exportCSV(){const data=await dbg('sz');let csv='﻿类型,分类,金额,日期,支付方式,经手人,备注\n';data.forEach(i=>{csv+=`${i.type},${i.cat||''},${i.amount},${i.date||''},${i.pay||''},${i.person||''},${i.note||''}\n`});const b=new Blob([csv],{type:'text/csv'});const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='收支数据_'+new Date().toISOString().split('T')[0]+'.csv';a.click();t('导出成功')}
