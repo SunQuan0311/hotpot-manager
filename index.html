@@ -281,7 +281,7 @@ function cm(id){document.getElementById(id).classList.remove('show')}
 function om(id){document.getElementById(id).classList.add('show')}
 
 // ====== TABS ======
-function st(t){
+function switchTab(t){
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
   document.getElementById('tab-'+t).classList.add('active');
   document.querySelectorAll('nav button').forEach((b,i)=>{b.classList.toggle('active',{sz:0,yg:1,kc:2,bb:3}[t]===i)});
