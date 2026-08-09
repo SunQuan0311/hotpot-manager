@@ -139,8 +139,8 @@ input:focus,select:focus{outline:none;border-color:var(--o);background:#fff}
 <!-- ====== MODALS ====== -->
 <div class="modal-overlay" id="modal-sz"><div class="modal">
   <h3 id="modal-sz-title">收支记录</h3>
-  <select id="m-sz-type"><option value="">选择类型</option><option value="收入">收入</option><option value="支出">支出</option></select>
-  <input id="m-sz-cat" placeholder="分类（如：食材采购/营业收入）">
+  <select id="m-sz-type" onchange="updateSZCat()"><option value="">选择类型</option><option value="收入">收入</option><option value="支出">支出</option></select>
+  <select id="m-sz-cat"><option value="">请先选择收支类型</option></select>
   <input type="number" id="m-sz-amt" placeholder="金额（元）" step="0.01">
   <input type="date" id="m-sz-date">
   <input id="m-sz-person" placeholder="经手人">
@@ -303,10 +303,18 @@ async function loadSZList(){
     </div>`).join('');
 }
 
+async function updateSZCat(){
+  const type=document.getElementById('m-sz-type').value;
+  const catSelect=document.getElementById('m-sz-cat');
+  const incomeCats=['营业收入','其他收入'];
+  const expenseCats=['食材采购','设备维修','水电费','工资支出','房租','其他支出'];
+  const cats=type==='收入'?incomeCats:type==='支出'?expenseCats:[];
+  catSelect.innerHTML='<option value="">选择分类</option>'+cats.map(c=>`<option value="${c}">${c}</option>`).join('');
+}
 async function openSZModal(id){
   document.getElementById('m-sz-id').value='';
   document.getElementById('modal-sz-title').textContent='新增收支';
-  document.getElementById('m-sz-type').value='';document.getElementById('m-sz-cat').value='';
+  document.getElementById('m-sz-type').value='';updateSZCat();
   document.getElementById('m-sz-amt').value='';document.getElementById('m-sz-date').value=new Date().toISOString().split('T')[0];
   document.getElementById('m-sz-person').value='';document.getElementById('m-sz-note').value='';
   if(id){
@@ -314,8 +322,8 @@ async function openSZModal(id){
     const item=await dbGet('sz',id);
     if(item){
       document.getElementById('m-sz-id').value=item.id;
-      document.getElementById('m-sz-type').value=item.type||'';
-      document.getElementById('m-sz-cat').value=item.cat||'';
+      document.getElementById('m-sz-type').value=item.type||'';updateSZCat();
+      setTimeout(()=>{document.getElementById('m-sz-cat').value=item.cat||''},50);
       document.getElementById('m-sz-amt').value=item.amount||'';
       document.getElementById('m-sz-date').value=item.date||'';
       document.getElementById('m-sz-person').value=item.person||'';
