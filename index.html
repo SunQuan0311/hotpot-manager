@@ -262,15 +262,16 @@ input:focus,select:focus{outline:none;border-color:var(--o);background:#fff}
 </div></div>
 
 <script>
-// ====== DATABASE ======
-const DB='hotpot_v7',stores=['sz','yg','leave','ingredient','product','bom','stockio','prodrec','budget'];
-let db;
-function odb(){return new Promise((r,j)=>{const q=indexedDB.open(DB,2);q.onupgradeneeded=e=>{const d=e.target.result;stores.forEach(s=>{if(!d.objectStoreNames.contains(s))d.createObjectStore(s,{keyPath:'id',autoIncrement:true})})};q.onsuccess=e=>{db=e.target.result;r(db)};q.onerror=j})}
-function dba(s,d){return new Promise((r,j)=>{const t=db.transaction(s,'readwrite').objectStore(s);const q=t.add(d);q.onsuccess=()=>r(q.result);q.onerror=j})}
-function dbp(s,d){return new Promise((r,j)=>{const t=db.transaction(s,'readwrite').objectStore(s);const q=t.put(d);q.onsuccess=()=>r(q.result);q.onerror=j})}
-function dbg(s){return new Promise((r,j)=>{const t=db.transaction(s,'readonly').objectStore(s);const q=t.getAll();q.onsuccess=()=>r(q.result);q.onerror=j})}
-function db1(s,i){return new Promise((r,j)=>{const t=db.transaction(s,'readonly').objectStore(s);const q=t.get(i);q.onsuccess=()=>r(q.result);q.onerror=j})}
-function dbd(s,i){return new Promise((r,j)=>{const t=db.transaction(s,'readwrite').objectStore(s);t.delete(i);t.oncomplete=()=>r();t.onerror=j})}
+// ====== DATABASE (Supabase) ======
+const SB_URL='https://dzmyonfsztrpvuicgtjm.supabase.co/rest/v1';
+const SB_KEY='sb_publishable_oLSyHseKehgHTc6W_qB8XA_wVBvwGPv';
+const SB_HEADERS={'apikey':SB_KEY,'Authorization':'Bearer '+SB_KEY,'Content-Type':'application/json'};
+async function odb(){return true} // no-op for Supabase
+async function dba(s,d){const r=await fetch(SB_URL+'/'+s,{method:'POST',headers:{...SB_HEADERS,'Prefer':'return=representation'},body:JSON.stringify(d)});const j=await r.json();return Array.isArray(j)?j[0]?.id:j?.id}
+async function dbp(s,d){const id=d.id;delete d.id;await fetch(SB_URL+'/'+s+'?id=eq.'+id,{method:'PATCH',headers:{...SB_HEADERS,'Prefer':'return=representation'},body:JSON.stringify(d)});return id}
+async function dbg(s){const r=await fetch(SB_URL+'/'+s+'?select=*&order=id.desc',{headers:SB_HEADERS});return await r.json()}
+async function db1(s,i){const r=await fetch(SB_URL+'/'+s+'?id=eq.'+i+'&select=*',{headers:SB_HEADERS});const j=await r.json();return j?.[0]}
+async function dbd(s,i){await fetch(SB_URL+'/'+s+'?id=eq.'+i,{method:'DELETE',headers:SB_HEADERS})}
 
 // ====== UI HELPERS ======
 function t(m){const e=document.getElementById('toast');e.textContent=m;e.classList.add('show');setTimeout(()=>e.classList.remove('show'),1800)}
@@ -527,7 +528,6 @@ if(sessionStorage.getItem('loggedIn')==='1'){document.getElementById('loginPage'
 
 // ====== INIT ======
 async function initApp(){
-  try{await odb()}catch(e){console.error(e);setTimeout(initApp,500);return}
   const now=new Date().toISOString().split('T')[0].substring(0,7);
   document.getElementById('sz-filter-month').value=now;
   document.getElementById('bb-month').value=now;
