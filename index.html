@@ -115,11 +115,13 @@ input:focus,select:focus{outline:none;border-color:var(--o);background:#fff}
     <button class="active" onclick="kcSubTab('ingredient')">食材清单</button>
     <button onclick="kcSubTab('product')">产品管理</button>
     <button onclick="kcSubTab('bom')">配方BOM</button>
+    <button onclick="kcSubTab('prodrec')">生产记录</button>
   </div>
   <div class="summary" id="kc-alert" style="display:none"><div style="background:#f05b5b15;border:1px solid #f05b5b30;border-radius:8px;padding:8px;text-align:center;color:var(--r);font-size:.75rem">⚠️ 以下食材低于安全库存</div></div>
   <div id="kc-ingredient-list"></div>
   <div id="kc-product-list" style="display:none"></div>
   <div id="kc-bom-list" style="display:none"></div>
+  <div id="kc-prodrec-list" style="display:none"></div>
   <button class="fab" id="kc-fab" onclick="openKCModal()">+</button>
 </div>
 
@@ -203,7 +205,17 @@ input:focus,select:focus{outline:none;border-color:var(--o);background:#fff}
   <input type="hidden" id="m-bom-id">
 </div></div>
 
-<div class="modal-overlay" id="modal-stock-io"><div class="modal">
+<div class="modal-overlay" id="modal-prodrec"><div class="modal">
+  <h3>产品生产记录</h3>
+  <select id="m-prodrec-prod"></select>
+  <input type="number" id="m-prodrec-qty" placeholder="生产数量" step="1">
+  <input type="date" id="m-prodrec-date">
+  <input id="m-prodrec-note" placeholder="备注">
+  <div style="background:#f5f5f5;border-radius:6px;padding:8px;margin:8px 0;font-size:.75rem;color:var(--d)" id="m-prodrec-cost-preview"></div>
+  <div class="row"><button class="btn btn-o btn-block" onclick="saveProdRec()">保存</button><button class="btn btn-o1 btn-block" onclick="closeModal('modal-prodrec')">取消</button></div>
+</div></div>
+
+
   <h3>出入库</h3>
   <select id="m-io-type"><option value="入库">入库</option><option value="出库">出库</option></select>
   <select id="m-io-ing"></select>
@@ -229,6 +241,7 @@ function openDB(){return new Promise((r,j)=>{
     if(!d.objectStoreNames.contains('product'))d.createObjectStore('product',{keyPath:'id',autoIncrement:true});
     if(!d.objectStoreNames.contains('bom'))d.createObjectStore('bom',{keyPath:'id',autoIncrement:true});
     if(!d.objectStoreNames.contains('stockio'))d.createObjectStore('stockio',{keyPath:'id',autoIncrement:true});
+    if(!d.objectStoreNames.contains('prodrec'))d.createObjectStore('prodrec',{keyPath:'id',autoIncrement:true});
   };
   req.onsuccess=e=>{db=e.target.result;r(db)};
   req.onerror=j;
@@ -513,15 +526,17 @@ function kcSubTab(t){
   document.getElementById('kc-ingredient-list').style.display=t==='ingredient'?'block':'none';
   document.getElementById('kc-product-list').style.display=t==='product'?'block':'none';
   document.getElementById('kc-bom-list').style.display=t==='bom'?'block':'none';
+  document.getElementById('kc-prodrec-list').style.display=t==='prodrec'?'block':'none';
   const fab=document.getElementById('kc-fab');
   fab.style.display='flex';
-  fab.onclick=t==='ingredient'?()=>openModal('modal-kc-ing'):t==='product'?()=>openModal('modal-kc-prod'):()=>openModal('modal-kc-bom');
+  fab.onclick=t==='ingredient'?()=>openModal('modal-kc-ing'):t==='product'?()=>openModal('modal-kc-prod'):t==='bom'?()=>openModal('modal-kc-bom'):()=>openProdRecModal();
   const btns=document.getElementById('kc-subtabs').querySelectorAll('button');
   btns.forEach(b=>b.classList.remove('active'));
-  btns[[{ingredient:0,product:1,bom:2}[t]]].classList.add('active');
+  btns[[{ingredient:0,product:1,bom:2,prodrec:3}[t]]].classList.add('active');
   if(t==='ingredient')loadKCIngredients();
   if(t==='product')loadKCProducts();
   if(t==='bom'){loadKCBOMs();loadYGDropdowns()}
+  if(t==='prodrec'){loadProdRecList();loadYGDropdowns()}
 }
 
 // Ingredient CRUD
@@ -622,6 +637,78 @@ async function saveStockIO(){
   await dbAdd('stockio',{ingredientId:ingId,type,qty,date:document.getElementById('m-io-date').value,note:document.getElementById('m-io-note').value.trim()});
   closeModal('modal-stock-io');loadKCIngredients();toast(type+'成功');
 }
+
+// Production Record
+async function openProdRecModal(){
+  const products=await dbGetAll('product');
+  document.getElementById('m-prodrec-prod').innerHTML='<option value="">选择产品</option>'+products.map(e=>`<option value="${e.id}">${e.name}</option>`).join('');
+  document.getElementById('m-prodrec-qty').value='';
+  document.getElementById('m-prodrec-date').value=new Date().toISOString().split('T')[0];
+  document.getElementById('m-prodrec-note').value='';
+  document.getElementById('m-prodrec-cost-preview').textContent='';
+  openModal('modal-prodrec');
+  document.getElementById('m-prodrec-prod').onchange=previewProdCost;
+  document.getElementById('m-prodrec-qty').oninput=previewProdCost;
+}
+async function previewProdCost(){
+  const prodId=parseInt(document.getElementById('m-prodrec-prod').value);
+  const qty=parseInt(document.getElementById('m-prodrec-qty').value)||0;
+  if(!prodId||!qty){document.getElementById('m-prodrec-cost-preview').textContent='';return}
+  const boms=await dbGetAll('bom');
+  const ingredients=await dbGetAll('ingredient');
+  const product=await dbGet('product',prodId);
+  const relatedBOMs=boms.filter(b=>b.productId===prodId);
+  let totalCost=0;
+  let details=[];
+  for(const b of relatedBOMs){
+    const ing=ingredients.find(i=>i.id===b.ingredientId);
+    if(ing){
+      const use=(b.qty||0)*qty;
+      const unitPrice=10;
+      const cost=use*unitPrice;
+      totalCost+=cost;
+      details.push(`${ing.name}:${use}${b.unit||''}`);
+    }
+  }
+  const unitCost=qty>0?totalCost/qty:0;
+  document.getElementById('m-prodrec-cost-preview').innerHTML=`
+    消耗食材: ${details.join(' · ')||'无配方数据'}<br>
+    预估总成本: ¥${totalCost.toFixed(2)} | 单位成本: ¥${unitCost.toFixed(2)}/份
+    ${product&&product.price?` | 售价: ¥${product.price} | 毛利率: ${((product.price-unitCost)/product.price*100).toFixed(1)}%`:''}`;
+}
+async function saveProdRec(){
+  const prodId=parseInt(document.getElementById('m-prodrec-prod').value)||0;
+  const qty=parseInt(document.getElementById('m-prodrec-qty').value)||0;
+  if(!prodId||!qty){toast('请选择产品并输入数量');return}
+  const product=await dbGet('product',prodId);
+  const date=document.getElementById('m-prodrec-date').value;
+  const boms=await dbGetAll('bom');
+  const relatedBOMs=boms.filter(b=>b.productId===prodId);
+  let totalCost=0;
+  for(const b of relatedBOMs){
+    const ing=await dbGet('ingredient',b.ingredientId);
+    if(ing){
+      const consume=(b.qty||0)*qty;
+      const newStock=Math.max(0,(ing.currentStock||0)-consume);
+      ing.currentStock=newStock;
+      await dbPut('ingredient',ing);
+      await dbAdd('stockio',{ingredientId:b.ingredientId,type:'出库',qty:consume,date,note:'生产'+product.name+'自动扣减'});
+      totalCost+=consume*10;
+    }
+  }
+  await dbAdd('prodrec',{productId:prodId,productName:product?product.name:'',qty,date,note:document.getElementById('m-prodrec-note').value.trim(),estimatedCost:totalCost});
+  closeModal('modal-prodrec');loadProdRecList();loadKCIngredients();toast('已保存，食材自动扣减');
+}
+async function loadProdRecList(){
+  const items=await dbGetAll('prodrec');
+  const list=document.getElementById('kc-prodrec-list');
+  if(!items.length){list.innerHTML='<div class="empty">暂无生产记录</div>';return}
+  list.innerHTML=items.sort((a,b)=>b.date>a.date?1:-1).map(i=>`
+    <div class="list-item">
+      <div class="info"><div class="title">${i.productName||''} ×${i.qty||0}</div><div class="sub">${fmtDate(i.date)} · 预估成本:¥${fmt(i.estimatedCost)} ${i.note||''}</div></div>
+      <button class="btn btn-sm btn-r" onclick="deleteProdRec(${i.id})">删</button></div>`).join('');
+}
+async function deleteProdRec(id){if(confirm('确认删除？已扣减食材不会自动恢复')){await dbDelete('prodrec',id);loadProdRecList();toast('已删除')}}
 
 // ====== TAB 4: 报表 ======
 async function loadReport(){
