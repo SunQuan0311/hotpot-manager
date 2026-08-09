@@ -883,39 +883,46 @@ function checkLogin(){
   if(loginInput===CORRECT_PIN){
     document.getElementById('loginPage').classList.add('hidden');
     document.getElementById('loginMsg').textContent='';
-    init();
+    afterLogin();
   }else{
     document.getElementById('loginMsg').textContent='密码错误';
     setTimeout(()=>{loginInput='';updateDots();document.getElementById('loginMsg').textContent=''},800);
   }
 }
 renderNumpad();
-// Auto-login if already passed (for PWA standalone mode)
+// Auto-login if previously authenticated
 if(sessionStorage.getItem('loggedIn')==='1'){
   document.getElementById('loginPage').classList.add('hidden');
-  init();
+  initApp();
 }
-// Save login state
-const origInit=init;
-init=async function(){
+// Save login state on success
+function afterLogin(){
   sessionStorage.setItem('loggedIn','1');
-  await origInit();
+  initApp();
+}
+
+// Auto-login if already passed (PWA)
+if(sessionStorage.getItem('loggedIn')==='1'){
+  document.getElementById('loginPage').classList.add('hidden');
+  initApp();
 }
 
 
 // ====== INIT ======
-async function init(){
-  await openDB();
-  // Set default month filter
-  const now=new Date().toISOString().split('T')[0].substring(0,7);
-  document.getElementById('sz-filter-month').value=now;
-  document.getElementById('bb-month').value=now;
-  document.getElementById('m-sz-date').value=new Date().toISOString().split('T')[0];
-  loadSZList();
-  // Clock
-  setInterval(()=>{document.getElementById('clock').textContent=new Date().toLocaleTimeString('zh-CN',{hour12:false})},1000);
+async function initApp(){
+  try {
+    await openDB();
+    const now=new Date().toISOString().split('T')[0].substring(0,7);
+    document.getElementById('sz-filter-month').value=now;
+    document.getElementById('bb-month').value=now;
+    document.getElementById('m-sz-date').value=new Date().toISOString().split('T')[0];
+    loadSZList();
+    setInterval(()=>{document.getElementById('clock').textContent=new Date().toLocaleTimeString('zh-CN',{hour12:false})},1000);
+  } catch(e) {
+    console.error(e);
+    setTimeout(()=>initApp(), 500);
+  }
 }
-init();
 </script>
 
 <div class="modal-overlay" id="modal-stock-io"><div class="modal">
