@@ -66,6 +66,24 @@ input:focus,select:focus{outline:none;border-color:var(--o);background:#fff}
 .tab-row button.active{background:var(--o);color:#fff;border-color:var(--o)}
 .toast{position:fixed;top:70px;left:50%;transform:translateX(-50%);background:#333;color:#fff;padding:8px 20px;border-radius:20px;font-size:.8rem;z-index:200;opacity:0;transition:opacity .3s}
 .toast.show{opacity:1}
+
+.login-page{position:fixed;inset:0;z-index:1000;background:linear-gradient(180deg,#8B0000 0%,#C41E1E 30%,#D4442A 50%,#E8753A 70%,#F5A623 100%);display:flex;flex-direction:column;align-items:center;justify-content:center;color:#fff}
+.login-page.hidden{display:none}
+.login-bg{position:absolute;inset:0;background:radial-gradient(ellipse at 50% 40%,rgba(255,215,0,.15) 0%,transparent 60%),radial-gradient(circle at 20% 80%,rgba(255,107,53,.2) 0%,transparent 40%),radial-gradient(circle at 80% 70%,rgba(255,69,0,.15) 0%,transparent 35%);pointer-events:none}
+.login-card{position:relative;z-index:1;background:rgba(0,0,0,.35);backdrop-filter:blur(10px);border-radius:16px;padding:32px 24px;width:calc(100% - 48px);max-width:340px;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,.3);border:1px solid rgba(255,255,255,.15)}
+.login-emoji{font-size:3.5rem;margin-bottom:8px}
+.login-card h2{font-size:1.4rem;margin-bottom:4px;font-weight:700;letter-spacing:2px}
+.login-card .sub{font-size:.7rem;color:rgba(255,255,255,.6);margin-bottom:20px}
+.login-dots{display:flex;justify-content:center;gap:12px;margin-bottom:20px}
+.login-dot{width:14px;height:14px;border-radius:50%;border:2px solid rgba(255,255,255,.5);transition:all .2s}
+.login-dot.filled{background:#FFD700;border-color:#FFD700;box-shadow:0 0 12px rgba(255,215,0,.5)}
+.login-numpad{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:12px}
+.login-numpad button{aspect-ratio:1;border-radius:50%;border:1px solid rgba(255,255,255,.25);background:rgba(255,255,255,.1);color:#fff;font-size:1.3rem;font-weight:600;cursor:pointer;transition:all .15s;-webkit-tap-highlight-color:transparent}
+.login-numpad button:active{background:rgba(255,255,255,.3);transform:scale(.95)}
+.login-numpad .del{font-size:.8rem}
+.login-numpad .empty{background:transparent;border:none}
+.login-msg{font-size:.7rem;color:#FFD700;min-height:20px;margin-top:4px}
+
 </style>
 </head>
 <body>
@@ -80,6 +98,22 @@ input:focus,select:focus{outline:none;border-color:var(--o);background:#fff}
 </nav>
 
 <div class="toast" id="toast"></div>
+
+<div class="login-page" id="loginPage">
+  <div class="login-bg"></div>
+  <div class="login-card">
+    <div class="login-emoji">🍲</div>
+    <h2>火锅店管理</h2>
+    <div class="sub">请输入安全密码</div>
+    <div class="login-dots" id="loginDots">
+      <div class="login-dot"></div><div class="login-dot"></div><div class="login-dot"></div><div class="login-dot"></div><div class="login-dot"></div><div class="login-dot"></div>
+    </div>
+    <div class="login-numpad" id="loginNumpad"></div>
+    <div class="login-msg" id="loginMsg"></div>
+  </div>
+  <div style="position:absolute;bottom:30px;color:rgba(255,255,255,.35);font-size:.6rem">Powered by Hotpot Manager</div>
+</div>
+
 
 <!-- ====== TAB 1: 收支 ====== -->
 <div class="page active" id="tab-sz">
@@ -820,6 +854,54 @@ function bbSubTab(t){
   btns[map[t]||0].classList.add('active');
   loadReport();
 }
+
+
+// ====== LOGIN ======
+const CORRECT_PIN='123456';
+let loginInput='';
+function renderNumpad(){
+  const pad=document.getElementById('loginNumpad');
+  const nums=[1,2,3,4,5,6,7,8,9,'empty','0','del'];
+  pad.innerHTML=nums.map(n=>{
+    if(n==='empty')return'<button class="empty"></button>';
+    if(n==='del')return'<button class="del" onclick="loginDel()">删除</button>';
+    return`<button onclick="loginTap(${n})">${n}</button>`;
+  }).join('');
+}
+function loginTap(n){
+  if(loginInput.length>=6)return;
+  loginInput+=n;
+  updateDots();
+  if(loginInput.length===6)checkLogin();
+}
+function loginDel(){loginInput=loginInput.slice(0,-1);updateDots();document.getElementById('loginMsg').textContent='';}
+function updateDots(){
+  const dots=document.querySelectorAll('#loginDots .login-dot');
+  dots.forEach((d,i)=>{d.classList.toggle('filled',i<loginInput.length)});
+}
+function checkLogin(){
+  if(loginInput===CORRECT_PIN){
+    document.getElementById('loginPage').classList.add('hidden');
+    document.getElementById('loginMsg').textContent='';
+    init();
+  }else{
+    document.getElementById('loginMsg').textContent='密码错误';
+    setTimeout(()=>{loginInput='';updateDots();document.getElementById('loginMsg').textContent=''},800);
+  }
+}
+renderNumpad();
+// Auto-login if already passed (for PWA standalone mode)
+if(sessionStorage.getItem('loggedIn')==='1'){
+  document.getElementById('loginPage').classList.add('hidden');
+  init();
+}
+// Save login state
+const origInit=init;
+init=async function(){
+  sessionStorage.setItem('loggedIn','1');
+  await origInit();
+}
+
 
 // ====== INIT ======
 async function init(){
