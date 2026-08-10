@@ -66,6 +66,8 @@ input:focus,select:focus{outline:none;border-color:var(--o);background:#fff}
 .tab-row button.active{background:var(--o);color:#fff;border-color:var(--o)}
 .toast{position:fixed;top:60px;left:50%;transform:translateX(-50%);background:#333;color:#fff;padding:6px 18px;border-radius:18px;font-size:.75rem;z-index:200;opacity:0;transition:opacity .3s;pointer-events:none}
 .toast.show{opacity:1}
+.loading{display:none;position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);z-index:300;background:rgba(0,0,0,.7);color:#fff;padding:12px 20px;border-radius:10px;font-size:.8rem}
+.loading.show{display:block}
 .chart-bar{display:flex;align-items:center;gap:6px;margin:2px 0}
 .chart-bar .bar-label{font-size:.65rem;min-width:60px;text-align:right;color:var(--d)}
 .chart-bar .bar-fill{height:18px;border-radius:4px;transition:width .5s;min-width:2px}
@@ -102,6 +104,7 @@ input:focus,select:focus{outline:none;border-color:var(--o);background:#fff}
 </nav>
 
 <div class="toast" id="toast"></div>
+<div class="loading" id="loading">加载中...</div>
 
 <!-- LOGIN -->
 <div class="login-page" id="loginPage">
@@ -213,6 +216,8 @@ input:focus,select:focus{outline:none;border-color:var(--o);background:#fff}
   <select id="m-sz-pay"><option value="">支付方式</option><option value="微信">微信</option><option value="支付宝">支付宝</option><option value="现金">现金</option><option value="银行卡">银行卡</option></select>
   <input id="m-sz-person" placeholder="经手人">
   <input id="m-sz-note" placeholder="备注">
+  <input type="file" id="m-sz-img" accept="image/*" style="font-size:.7rem" onchange="previewSZImg()">
+  <div id="m-sz-img-preview" style="margin-bottom:6px"></div>
   <div class="row"><button class="btn btn-o btn-block" onclick="saveSZ()">保存</button><button class="btn btn-o1 btn-block" onclick="closeModal('modal-sz')">取消</button></div>
   <input type="hidden" id="m-sz-id">
 </div></div>
@@ -345,6 +350,12 @@ async function dbd(s,i){
   try{var r=await fetch(SB_URL+'/'+s+'?id=eq.'+i,{method:'DELETE',headers:SB_HEADERS});if(!r.ok)throw new Error()}catch(e){isOnline=false;await dbd(s,i)}}
 
 // ====== UI HELPERS ======
+function showLoading(){document.getElementById('loading').classList.add('show')}
+function hideLoading(){document.getElementById('loading').classList.remove('show')}
+function logOp(action,detail){var logs=JSON.parse(sessionStorage.getItem('opLog')||'[]');logs.unshift({time:new Date().toLocaleString(),action:action,detail:detail});if(logs.length>100)logs.pop();sessionStorage.setItem('opLog',JSON.stringify(logs))}
+function previewSZImg(){var f=document.getElementById('m-sz-img').files[0];var p=document.getElementById('m-sz-img-preview');if(f){var r=new FileReader();r.onload=function(e){p.innerHTML='<img src="'+e.target.result+'" style="max-width:100%;max-height:120px;border-radius:6px">'};r.readAsDataURL(f)}else{p.innerHTML=''}}
+
+// ====== UI HELPERS ======
 function t(m){const e=document.getElementById('toast');e.textContent=m;e.classList.add('show');setTimeout(()=>e.classList.remove('show'),1800)}
 function f(n){return n==null||isNaN(n)?'0.00':Number(n).toFixed(2)}
 function fd(d){if(!d)return'';return new Date(d).toLocaleDateString('zh-CN')}
@@ -403,10 +414,14 @@ async function openSZModal(id){
 }
 async function saveSZ(){
   const id=document.getElementById('m-sz-id').value;
-  const data={type:document.getElementById('m-sz-type').value,cat:document.getElementById('m-sz-cat').value,amount:parseFloat(document.getElementById('m-sz-amt').value)||0,date:document.getElementById('m-sz-date').value,pay:document.getElementById('m-sz-pay').value,person:document.getElementById('m-sz-person').value.trim(),note:document.getElementById('m-sz-note').value.trim()};
+  var imgPreview=document.getElementById('m-sz-img-preview').querySelector('img');
+  var imgData=imgPreview?imgPreview.src:'';
+  const data={type:document.getElementById('m-sz-type').value,cat:document.getElementById('m-sz-cat').value,amount:parseFloat(document.getElementById('m-sz-amt').value)||0,date:document.getElementById('m-sz-date').value,pay:document.getElementById('m-sz-pay').value,person:document.getElementById('m-sz-person').value.trim(),note:document.getElementById('m-sz-note').value.trim(),img:imgData};
   if(!data.type||!data.amount){t('请填写类型和金额');return}
+  showLoading();
   if(id){data.id=parseInt(id);await dbp('sz',data)}else{await dba('sz',data)}
-  closeModal('modal-sz');loadSZList();t('已保存');
+  logOp('收支录入',data.type+' '+data.cat+' ¥'+data.amount);
+  hideLoading();closeModal('modal-sz');loadSZList();t('已保存');
 }
 async function editSZ(id){openSZModal(id)}
 async function deleteSZ(id){if(confirm('确认删除？')){await dbd('sz',id);loadSZList();t('已删除')}}
