@@ -423,7 +423,15 @@ async function loadKCIngredients(){
 async function loadKCProducts(){
   const items=await dbg('product');const list=document.getElementById('kc-product-list');
   if(!items.length){list.innerHTML='<div class="empty">暂无产品，点右下角+添加</div>';return}
-  list.innerHTML=items.map(i=>`<div class="list-item"><div class="info"><div class="title">${i.name||''}</div><div class="sub">${i.cat||''} · 售价:¥${f(i.price)} ${i.note||''}</div></div><div style="display:flex;gap:2px"><button class="btn btn-sm btn-b" onclick="event.stopPropagation();editProduct(${i.id})">编</button><button class="btn btn-sm btn-r" onclick="event.stopPropagation();deleteProduct(${i.id})">删</button></div></div>`).join('');
+  // Group by category
+  const groups={};items.forEach(i=>{const k=i.cat||'未分类';if(!groups[k])groups[k]=[];groups[k].push(i)});
+  let html='';
+  for(const [cat,prods] of Object.entries(groups)){
+    html+=`<div class="card"><h3>${cat} (${prods.length})</h3>`;
+    html+=prods.map(i=>`<div class="list-item"><div class="info"><div class="title">${i.name||''}</div><div class="sub">售价:¥${f(i.price)} ${i.note||''}</div></div><div style="display:flex;gap:2px"><button class="btn btn-sm btn-b" onclick="event.stopPropagation();editProduct(${i.id})">编</button><button class="btn btn-sm btn-r" onclick="event.stopPropagation();deleteProduct(${i.id})">删</button></div></div>`).join('');
+    html+='</div>';
+  }
+  list.innerHTML=html;
 }
 async function loadKCBOMs(){
   const items=await dbg('bom');const prods=await dbg('product');const ings=await dbg('ingredient');
