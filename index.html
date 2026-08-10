@@ -13,7 +13,7 @@
 <style>
 :root{--o:#C41E1E;--g:#4caf84;--b:#5b9cf5;--r:#f05b5b;--bg:#fdf5f0;--card:#fff;--t:#333;--d:#999}
 *{margin:0;padding:0;box-sizing:border-box}
-body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:linear-gradient(180deg,#fff5f0 0%,#fdf0e6 30%,#fef5ed 60%,#fdf0e6 100%);color:var(--t);padding-bottom:60px;max-width:100vw;overflow-x:hidden;-webkit-tap-highlight-color:transparent;min-height:100vh}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:url(bg_body.jpg) center/cover no-repeat fixed;color:var(--t);padding-bottom:60px;max-width:100vw;overflow-x:hidden;-webkit-tap-highlight-color:transparent;min-height:100vh}
 header{background:linear-gradient(135deg,#8B0000,#C41E1E);color:#fff;padding:10px 14px;position:sticky;top:0;z-index:10;display:flex;justify-content:space-between;align-items:center}
 header h1{font-size:1rem;font-weight:600}
 nav{position:fixed;bottom:0;left:0;right:0;background:#fff;display:flex;border-top:1px solid #eee;z-index:10;padding-bottom:env(safe-area-inset-bottom)}
@@ -22,7 +22,7 @@ nav button.active{color:var(--o)}
 nav button .icon{font-size:1.2rem}
 .page{display:none;padding:10px}
 .page.active{display:block}
-.card{background:var(--card);border-radius:10px;padding:12px;margin-bottom:8px;box-shadow:0 1px 3px rgba(0,0,0,.06)}
+.card{background:rgba(255,255,255,.92);border-radius:10px;padding:12px;margin-bottom:8px;box-shadow:0 1px 3px rgba(0,0,0,.08)}
 .card h3{font-size:.85rem;margin-bottom:6px;color:var(--o)}
 .row{display:flex;gap:6px;flex-wrap:wrap}
 .row>*{flex:1;min-width:60px}
@@ -50,7 +50,7 @@ input:focus,select:focus{outline:none;border-color:var(--o);background:#fff}
 .badge-out{background:#f05b5b15;color:var(--r)}
 .badge-warn{background:#ff6b3515;color:#ff6b35}
 .summary{display:flex;gap:6px;margin-bottom:10px}
-.summary>div{flex:1;background:var(--card);border-radius:8px;padding:8px;text-align:center;box-shadow:0 1px 3px rgba(0,0,0,.06)}
+.summary>div{flex:1;background:rgba(255,255,255,.9);border-radius:8px;padding:8px;text-align:center;box-shadow:0 1px 3px rgba(0,0,0,.08)}
 .summary .num{font-size:1.1rem;font-weight:700}
 .summary .lbl{font-size:.58rem;color:var(--d);margin-top:1px}
 .empty{text-align:center;padding:30px 15px;color:var(--d);font-size:.8rem}
