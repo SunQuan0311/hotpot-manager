@@ -104,7 +104,12 @@ input:focus,select:focus{outline:none;border-color:var(--o);background:#fff}
     <h2>七喜呱呱老火锅</h2>
     <div class="sub">宁武店 · 请输入密码</div>
     <div class="login-dots" id="loginDots"><div class="login-dot"></div><div class="login-dot"></div><div class="login-dot"></div><div class="login-dot"></div><div class="login-dot"></div><div class="login-dot"></div></div>
-    <div class="login-numpad" id="loginNumpad"></div>
+    <div class="login-numpad">
+      <button onclick="loginTap(1)">1</button><button onclick="loginTap(2)">2</button><button onclick="loginTap(3)">3</button>
+      <button onclick="loginTap(4)">4</button><button onclick="loginTap(5)">5</button><button onclick="loginTap(6)">6</button>
+      <button onclick="loginTap(7)">7</button><button onclick="loginTap(8)">8</button><button onclick="loginTap(9)">9</button>
+      <button class="empty" disabled></button><button onclick="loginTap(0)">0</button><button class="del" onclick="loginDel()">删除</button>
+    </div>
     <div class="login-msg" id="loginMsg"></div>
   </div>
 </div>
@@ -556,11 +561,33 @@ async function exportCSV(){const data=await dbg('sz');let csv='﻿类型,分类,
 
 // ====== LOGIN ======
 const PIN='123456';let loginInput='';
-function renderNumpad(){var p=document.getElementById('loginNumpad');if(!p)return;p.innerHTML='';for(var i=1;i<=9;i++){var b=document.createElement('button');b.textContent=i;b.onclick=(function(n){return function(){loginTap(n)}})(i);p.appendChild(b)}var eb=document.createElement('button');eb.className='empty';eb.disabled=true;p.appendChild(eb);var zb=document.createElement('button');zb.textContent='0';zb.onclick=function(){loginTap(0)};p.appendChild(zb);var db=document.createElement('button');db.className='del';db.textContent='删除';db.onclick=loginDel;p.appendChild(db)}renderNumpad();
-function loginTap(n){if(loginInput.length>=6)return;loginInput+=n;updateDots();if(loginInput.length===6)checkLogin()}
-function loginDel(){loginInput=loginInput.slice(0,-1);updateDots();document.getElementById('loginMsg').textContent=''}
-function updateDots(){document.querySelectorAll('#loginDots .login-dot').forEach((d,i)=>d.classList.toggle('filled',i<loginInput.length))}
-function checkLogin(){if(loginInput===PIN){document.getElementById('loginPage').classList.add('hidden');document.getElementById('loginMsg').textContent='';afterLogin()}else{document.getElementById('loginMsg').textContent='密码错误';setTimeout(()=>{loginInput='';updateDots();document.getElementById('loginMsg').textContent=''},800)}}
+function loginTap(n){
+  if(loginInput.length>=6)return;
+  loginInput+=String(n);
+  var dots=document.querySelectorAll('#loginDots .login-dot');
+  for(var i=0;i<dots.length;i++){if(i<loginInput.length)dots[i].classList.add('filled');else dots[i].classList.remove('filled')}
+  if(loginInput.length===6)checkLogin();
+}
+function loginDel(){
+  loginInput=loginInput.slice(0,-1);
+  var dots=document.querySelectorAll('#loginDots .login-dot');
+  for(var i=0;i<dots.length;i++){if(i<loginInput.length)dots[i].classList.add('filled');else dots[i].classList.remove('filled')}
+  document.getElementById('loginMsg').textContent='';
+}
+function checkLogin(){
+  if(loginInput===PIN){
+    document.getElementById('loginPage').classList.add('hidden');
+    afterLogin();
+  }else{
+    document.getElementById('loginMsg').textContent='密码错误，重试';
+    loginInput='';
+    setTimeout(function(){
+      var dots=document.querySelectorAll('#loginDots .login-dot');
+      for(var i=0;i<dots.length;i++)dots[i].classList.remove('filled');
+      document.getElementById('loginMsg').textContent='';
+    },800);
+  }
+}
 function afterLogin(){sessionStorage.setItem('loggedIn','1');initApp()}
 if(sessionStorage.getItem('loggedIn')==='1'){document.getElementById('loginPage').classList.add('hidden');initApp()}
 
