@@ -711,36 +711,20 @@ function saveStoreName(){
   t('店名已更新');
 }
 async function exportAllData(){
-  var tables=[{n:'sz',c:['ID','类型','分类','金额','日期','支付方式','经手人','备注','图片']},
-    {n:'yg',c:['ID','姓名','岗位','月薪','入职日期','健康证','备注']},
-    {n:'leave',c:['ID','员工ID','员工姓名','类型','开始','结束','天数']},
-    {n:'ingredient',c:['ID','名称','分类','单位','库存','预警线','备注']},
-    {n:'product',c:['ID','名称','分类','售价','备注']},
-    {n:'bom',c:['ID','产品ID','食材ID','用量','单位','备注']},
-    {n:'stockio',c:['ID','食材ID','类型','数量','日期','备注']},
-    {n:'prodrec',c:['ID','产品ID','产品名','数量','日期','备注','预估成本']},
-    {n:'budget',c:['ID','月份','金额']},{n:'prodcat',c:['ID','名称','备注']}];
-  var html='<html><head><meta charset="UTF-8"></head><body>';
+  var tables=['sz','yg','leave','ingredient','product','bom','stockio','prodrec','budget','prodcat'];
+  var all={};
+  for(var i=0;i<tables.length;i++){try{all[tables[i]]=await dbg(tables[i])}catch(e){all[tables[i]]=[]}}
+  var csv='﻿'; // UTF-8 BOM for Excel
   for(var i=0;i<tables.length;i++){
-    var data=[];try{data=await dbg(tables[i].n)}catch(e){}
-    html+='<h2>'+tables[i].n+'</h2><table border="1">';
-    html+='<tr>'+tables[i].c.map(function(h){return'<th>'+h+'</th>'}).join('')+'</tr>';
-    for(var j=0;j<data.length;j++){
-      html+='<tr>';
-      for(var k=0;k<tables[i].c.length;k++){
-        var val=data[j][tables[i].c[k]]||data[j][Object.keys(data[j])[k]]||'';
-        if(typeof val==='string'&&val.length>50)val=val.substring(0,50)+'...';
-        html+='<td>'+val+'</td>';
-      }
-      html+='</tr>';
-    }
-    html+='</table><br>';
+    var data=all[tables[i]]||[];
+    csv+='\n=== '+tables[i]+' ===\n';
+    if(data.length>0){var keys=Object.keys(data[0]).filter(function(k){return k.length<50});csv+=keys.join(',')+'\n';
+      for(var j=0;j<data.length;j++){csv+=keys.map(function(k){var v=data[j][k]||'';if(typeof v==='string')v='"'+v.replace(/"/g,'""')+'"';return v}).join(',')+'\n'}}
   }
-  html+='</body></html>';
-  var blob=new Blob([html],{type:'application/vnd.ms-excel'});
+  var blob=new Blob([csv],{type:'text/csv;charset=utf-8'});
   var a=document.createElement('a');a.href=URL.createObjectURL(blob);
-  a.download='hotpot_backup_'+new Date().toISOString().split('T')[0]+'.xls';a.click();
-  t('已导出Excel');
+  a.download='hotpot_'+new Date().toISOString().split('T')[0]+'.csv';a.click();
+  t('已导出CSV');
 }
 function importAllData(input){
   if(!confirm('导入将覆盖现有数据，确认继续？')){input.value='';return}
