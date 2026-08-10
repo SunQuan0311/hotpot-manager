@@ -111,6 +111,7 @@ input:focus,select:focus{outline:none;border-color:var(--o);background:#fff}
       <button class="empty" disabled></button><button onclick="loginTap(0)">0</button><button class="del" onclick="loginDel()">删除</button>
     </div>
     <div class="login-msg" id="loginMsg"></div>
+  <div style="margin-top:10px;font-size:.5rem;color:rgba(255,255,255,.3)">v4 - 静态键盘版</div>
   </div>
 </div>
 
@@ -588,8 +589,8 @@ function checkLogin(){
     },800);
   }
 }
-function afterLogin(){sessionStorage.setItem('loggedIn','1');initApp()}
-if(sessionStorage.getItem('loggedIn')==='1'){document.getElementById('loginPage').classList.add('hidden');initApp()}
+function afterLogin(){try{sessionStorage.setItem('loggedIn','1')}catch(e){}initApp()}
+window.addEventListener('DOMContentLoaded',function(){if(sessionStorage.getItem('loggedIn')==='1'){document.getElementById('loginPage').classList.add('hidden');initApp()}})
 
 // ====== INIT ======
 async function initApp(){
