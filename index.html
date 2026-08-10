@@ -13,7 +13,7 @@
 <style>
 :root{--o:#C41E1E;--g:#4caf84;--b:#5b9cf5;--r:#f05b5b;--bg:#fdf5f0;--card:#fff;--t:#333;--d:#999}
 *{margin:0;padding:0;box-sizing:border-box}
-body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:url(bg_body.jpg) center/cover no-repeat fixed;color:var(--t);padding-bottom:60px;max-width:100vw;overflow-x:hidden;-webkit-tap-highlight-color:transparent;min-height:100vh}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#fff;color:var(--t);padding-bottom:60px;max-width:100vw;overflow-x:hidden;-webkit-tap-highlight-color:transparent;min-height:100vh}
 header{background:linear-gradient(135deg,#8B0000,#C41E1E);color:#fff;padding:10px 14px;position:sticky;top:0;z-index:10;display:flex;justify-content:space-between;align-items:center}
 header h1{font-size:1rem;font-weight:600}
 nav{position:fixed;bottom:0;left:0;right:0;background:#fff;display:flex;border-top:1px solid #eee;z-index:10;padding-bottom:env(safe-area-inset-bottom)}
@@ -22,7 +22,7 @@ nav button.active{color:var(--o)}
 nav button .icon{font-size:1.2rem}
 .page{display:none;padding:10px}
 .page.active{display:block}
-.card{background:rgba(255,255,255,.92);border-radius:10px;padding:12px;margin-bottom:8px;box-shadow:0 1px 3px rgba(0,0,0,.08)}
+.card{background:var(--card);border-radius:10px;padding:12px;margin-bottom:8px;box-shadow:0 1px 3px rgba(0,0,0,.08)}
 .card h3{font-size:.85rem;margin-bottom:6px;color:var(--o)}
 .row{display:flex;gap:6px;flex-wrap:wrap}
 .row>*{flex:1;min-width:60px}
@@ -687,10 +687,10 @@ async function checkDailySettlement(){
   var yesterday=new Date();yesterday.setDate(yesterday.getDate()-1);
   var yd=yesterday.toISOString().split('T')[0];
   var sz=await dbg('sz');var yItems=sz.filter(function(i){return i.date===yd});
-  if(yItems.length>0&&!sessionStorage.getItem('settled_'+yd)){
+  if(yItems.length>0&&!localStorage.getItem('settled_'+yd)){
     var inc=yItems.filter(function(i){return i.type==='收入'}).reduce(function(s,i){return s+i.amount},0);
     var exp=yItems.filter(function(i){return i.type==='支出'}).reduce(function(s,i){return s+i.amount},0);
-    if(inc>0&&confirm('昨日('+yd+')营收¥'+f(inc)+'，支出¥'+f(exp)+'。是否记录日结？')){sessionStorage.setItem('settled_'+yd,'1');t('日结已确认')}
+    if(inc>0&&confirm('昨日('+yd+')营收¥'+f(inc)+'，支出¥'+f(exp)+'。是否记录日结？')){localStorage.setItem('settled_'+yd,'1');t('日结已确认')}
   }
 }
 
