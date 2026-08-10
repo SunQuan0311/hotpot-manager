@@ -97,6 +97,7 @@ input:focus,select:focus{outline:none;border-color:var(--o);background:#fff}
 <button onclick="switchTab('yg')"><span class="icon">👥</span>员工</button>
 <button onclick="switchTab('kc')"><span class="icon">🥩</span>库存</button>
 <button onclick="switchTab('bb')"><span class="icon">📊</span>报表</button>
+<button onclick="switchTab('set')"><span class="icon">⚙️</span>设置</button>
 </nav>
 
 <div class="toast" id="toast"></div>
@@ -178,6 +179,27 @@ input:focus,select:focus{outline:none;border-color:var(--o);background:#fff}
   </div>
   <div class="filter-row"><input type="month" id="bb-month" onchange="loadReport()"><button class="btn btn-sm btn-b" onclick="exportCSV()">导出CSV</button></div>
   <div id="bb-content"></div>
+</div>
+
+<!-- TAB 5: 设置 -->
+<div class="page" id="tab-set">
+  <div class="card"><h3>修改密码</h3>
+    <input type="password" id="set-old-pin" placeholder="当前密码" maxlength="6">
+    <input type="password" id="set-new-pin" placeholder="新密码（6位数字）" maxlength="6">
+    <button class="btn btn-o btn-block" onclick="changePin()">修改密码</button>
+  </div>
+  <div class="card"><h3>店名设置</h3>
+    <input id="set-name" placeholder="店铺名称" value="七喜呱呱老火锅（宁武店）">
+    <button class="btn btn-o btn-block" onclick="saveStoreName()">保存店名</button>
+  </div>
+  <div class="card"><h3>数据备份</h3>
+    <button class="btn btn-b btn-block" onclick="exportAllData()">导出全部数据</button>
+    <button class="btn btn-o1 btn-block" onclick="document.getElementById('import-file').click()" style="margin-top:6px">导入数据恢复</button>
+    <input type="file" id="import-file" accept=".json" style="display:none" onchange="importAllData(this)">
+  </div>
+  <div class="card"><h3>关于</h3>
+    <div style="font-size:.75rem;color:var(--d)">七喜呱呱老火锅（宁武店）管理后台<br>数据存储: Supabase 云端</div>
+  </div>
 </div>
 
 <!-- MODALS -->
@@ -318,6 +340,7 @@ function switchTab(t){
   if(t==='yg'){loadYGList();document.querySelectorAll('#yg-subtabs button')[0].click()}
   if(t==='kc'){loadKCIngredients();document.querySelectorAll('#kc-subtabs button')[0].click()}
   if(t==='bb'){document.querySelectorAll('#bb-subtabs button')[0].click();loadReport()}
+  if(t==='set'){document.getElementById('set-name').value=document.querySelector('header h1').textContent.replace('🍲 ','')}
 }
 
 // ====== TAB 1: 收支 ======
@@ -591,7 +614,7 @@ async function saveBudget(){const month=document.getElementById('m-budget-month'
 async function exportCSV(){const data=await dbg('sz');let csv='﻿类型,分类,金额,日期,支付方式,经手人,备注\n';data.forEach(i=>{csv+=`${i.type},${i.cat||''},${i.amount},${i.date||''},${i.pay||''},${i.person||''},${i.note||''}\n`});const b=new Blob([csv],{type:'text/csv'});const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='收支数据_'+new Date().toISOString().split('T')[0]+'.csv';a.click();t('导出成功')}
 
 // ====== LOGIN ======
-const PIN='479423';let loginInput='';
+var PIN=sessionStorage.getItem('hotpot_pin')||'479423';let loginInput='';
 function loginTap(n){if(loginInput.length>=6)return;loginInput+=n;updateDots();if(loginInput.length===6)checkLogin()}
 function loginDel(){loginInput=loginInput.slice(0,-1);updateDots();document.getElementById('loginMsg').textContent=''}
 function updateDots(){document.querySelectorAll('#loginDots .login-dot').forEach((d,i)=>d.classList.toggle('filled',i<loginInput.length))}
@@ -608,6 +631,53 @@ async function initApp(){
   loadSZList();
   setTimeout(async()=>{const ing=await dbg('ingredient');const low=ing.filter(i=>i.currentStock>0&&i.warnLevel>0&&i.currentStock<=i.warnLevel);if(low.length)t('低库存预警: '+low.map(i=>i.name).join('、'))},2000);
   setInterval(()=>{document.getElementById('clock').textContent=new Date().toLocaleTimeString('zh-CN',{hour12:false})},1000);
+}
+
+// ====== SETTINGS ======
+function changePin(){
+  var old=document.getElementById('set-old-pin').value;
+  var neu=document.getElementById('set-new-pin').value;
+  if(old!==PIN){t('当前密码错误');return}
+  if(!/^\d{6}$/.test(neu)){t('新密码需6位数字');return}
+  PIN=neu;document.getElementById('set-old-pin').value='';document.getElementById('set-new-pin').value='';
+  t('密码已修改');sessionStorage.setItem('hotpot_pin',neu);
+}
+function saveStoreName(){
+  var name=document.getElementById('set-name').value.trim();
+  if(!name){t('请输入店名');return}
+  document.querySelector('header h1').textContent='🍲 '+name;
+  document.querySelector('.login-card h2').textContent=name;
+  t('店名已更新');
+}
+async function exportAllData(){
+  var tables=['sz','yg','leave','ingredient','product','bom','stockio','prodrec','budget','prodcat'];
+  var all={};
+  for(var i=0;i<tables.length;i++){
+    try{all[tables[i]]=await dbg(tables[i])}catch(e){all[tables[i]]=[]}
+  }
+  var blob=new Blob([JSON.stringify(all,null,2)],{type:'application/json'});
+  var a=document.createElement('a');a.href=URL.createObjectURL(blob);
+  a.download='hotpot_backup_'+new Date().toISOString().split('T')[0]+'.json';a.click();
+  t('数据已导出');
+}
+function importAllData(input){
+  if(!confirm('导入将覆盖现有数据，确认继续？')){input.value='';return}
+  var reader=new FileReader();
+  reader.onload=async function(e){
+    try{
+      var all=JSON.parse(e.target.result);
+      var tables=['sz','yg','leave','ingredient','product','bom','stockio','prodrec','budget','prodcat'];
+      for(var i=0;i<tables.length;i++){
+        var t=tables[i];if(!all[t])continue;
+        // Clear existing
+        try{var existing=await dbg(t);for(var j=0;j<existing.length;j++){await dbd(t,existing[j].id)}}catch(e){}
+        // Import
+        for(var k=0;k<all[t].length;k++){var d=all[t][k];delete d.id;await dba(t,d)}
+      }
+      t('数据恢复完成！请刷新页面')
+    }catch(e){t('文件格式错误')}
+  };
+  reader.readAsText(input.files[0]);
 }
 </script>
 </body>
