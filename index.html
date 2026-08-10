@@ -66,6 +66,10 @@ input:focus,select:focus{outline:none;border-color:var(--o);background:#fff}
 .tab-row button.active{background:var(--o);color:#fff;border-color:var(--o)}
 .toast{position:fixed;top:60px;left:50%;transform:translateX(-50%);background:#333;color:#fff;padding:6px 18px;border-radius:18px;font-size:.75rem;z-index:200;opacity:0;transition:opacity .3s;pointer-events:none}
 .toast.show{opacity:1}
+.chart-bar{display:flex;align-items:center;gap:6px;margin:2px 0}
+.chart-bar .bar-label{font-size:.65rem;min-width:60px;text-align:right;color:var(--d)}
+.chart-bar .bar-fill{height:18px;border-radius:4px;transition:width .5s;min-width:2px}
+.chart-bar .bar-val{font-size:.65rem;font-weight:600;white-space:nowrap}
 .login-page{position:fixed;inset:0;z-index:1000;background:url(bg_login.jpg) center/cover no-repeat;display:flex;flex-direction:column;align-items:center;justify-content:center;color:#fff}
 .login-overlay{position:absolute;inset:0;background:linear-gradient(180deg,rgba(139,0,0,.75),rgba(150,30,30,.7),rgba(0,0,0,.5))}
 .login-page.hidden{display:none}
@@ -155,6 +159,7 @@ input:focus,select:focus{outline:none;border-color:var(--o);background:#fff}
   </div>
   <div id="kc-alert-bar" style="display:none;background:#f05b5b10;border:1px solid #f05b5b30;border-radius:8px;padding:6px 10px;margin-bottom:8px;color:var(--r);font-size:.7rem"></div>
   <div id="kc-ingredient-list"></div>
+  <input id="kc-product-search" placeholder="🔍 搜索产品..." oninput="loadKCProducts()" style="display:none;margin-bottom:6px">
   <div id="kc-product-list" style="display:none"></div>
   <div id="kc-bom-list" style="display:none"></div>
   <div id="kc-prodrec-list" style="display:none"></div>
@@ -419,12 +424,14 @@ async function loadKCIngredients(){
 }
 async function loadKCProducts(){
   const items=await dbg('product');const list=document.getElementById('kc-product-list');
+  const search=(document.getElementById('kc-product-search').value||'').toLowerCase();
+  let filtered=search?items.filter(i=>(i.name||'').includes(search)||(i.cat||'').includes(search)):items;
   if(!items.length){list.innerHTML='<div class="empty">暂无产品，点右下角+添加</div>';return}
   const catOrder=['锅底','小料','特色推荐','新菜推荐','荤菜','特色素菜','素菜','涮肉','小吃','主食','饮品','酒水'];
-  const groups={};items.forEach(i=>{const c=i.cat||'未分类';if(!groups[c])groups[c]=[];groups[c].push(i)});
+  const groups={};filtered.forEach(i=>{const c=i.cat||'未分类';if(!groups[c])groups[c]=[];groups[c].push(i)});
   let h='';
   for(const c of catOrder){if(!groups[c])continue;h+=`<div class="card"><h3>${c} (${groups[c].length})</h3>`;h+=groups[c].map(i=>`<div class="list-item"><div class="info"><div class="title">${i.name||''}</div><div class="sub">售价:¥${f(i.price)} ${i.note||''}</div></div><div style="display:flex;gap:2px"><button class="btn btn-sm btn-b" onclick="event.stopPropagation();editProduct(${i.id})">编</button><button class="btn btn-sm btn-r" onclick="event.stopPropagation();deleteProduct(${i.id})">删</button></div></div>`).join('');h+='</div>'}
-  list.innerHTML=h||'<div class="empty">暂无产品</div>';
+  list.innerHTML=h||'<div class="empty">无匹配产品</div>';
 }
 async function loadKCBOMs(){
   const items=await dbg('bom');const prods=await dbg('product');const ings=await dbg('ingredient');
@@ -446,6 +453,7 @@ function kcSubTab(t){
   fab.onclick=t==='ingredient'?()=>{document.getElementById('m-ing-id').value='';document.getElementById('modal-kc-ing-title').textContent='新增食材';document.getElementById('m-ing-name').value='';document.getElementById('m-ing-cat').value='';document.getElementById('m-ing-unit').value='';document.getElementById('m-ing-stock').value='';document.getElementById('m-ing-warn').value='';document.getElementById('m-ing-note').value='';openModal('modal-kc-ing')}:t==='product'?()=>{document.getElementById('m-prod-id').value='';document.getElementById('modal-kc-prod-title').textContent='新增产品';document.getElementById('m-prod-name').value='';document.getElementById('m-prod-cat').value='';document.getElementById('m-prod-price').value='';document.getElementById('m-prod-note').value='';openModal('modal-kc-prod')}:t==='bom'?()=>{refreshDrops();openModal('modal-kc-bom')}:()=>openProdRecModal();
   document.querySelectorAll('#kc-subtabs button').forEach(b=>b.classList.remove('active'));
   document.querySelectorAll('#kc-subtabs button')[({ingredient:0,product:1,bom:2,prodrec:3}[t])].classList.add('active');
+  document.getElementById('kc-product-search').style.display=t==='product'?'block':'none';
   if(t==='ingredient')loadKCIngredients();if(t==='product')loadKCProducts();if(t==='bom'){loadKCBOMs();refreshDrops()}if(t==='prodrec'){loadProdRecList();refreshDrops()}
 }
 // Ingredient CRUD
@@ -508,7 +516,7 @@ async function loadReport(){
   if(tab.includes('收支')){
     const items=(await dbg('sz')).filter(i=>gm(i.date)===month);let ti=0,to=0;items.forEach(i=>{if(i.type==='收入')ti+=i.amount;else to+=i.amount});
     const byCat={};items.forEach(i=>{const k=i.cat||'其他';byCat[k]=(byCat[k]||0)+i.amount});
-    c.innerHTML=`<div class="summary"><div><div class="num" style="color:var(--g)">¥${f(ti)}</div><div class="lbl">总收入</div></div><div><div class="num" style="color:var(--r)">¥${f(to)}</div><div class="lbl">总支出</div></div><div><div class="num" style="color:${ti>=to?'var(--g)':'var(--r)'}">¥${f(ti-to)}</div><div class="lbl">盈亏</div></div></div><div class="card"><h3>分类汇总</h3>${Object.entries(byCat).map(([k,v])=>`<div class="list-item"><span>${k}</span><span class="val">¥${f(v)}</span></div>`).join('')||'<div class="empty">无数据</div>'}</div><div class="card"><h3>流水明细</h3>${items.length?items.sort((a,b)=>b.date>a.date?1:-1).map(i=>`<div class="list-item"><div class="info"><div class="title"><span class="badge ${i.type==='收入'?'badge-in':'badge-out'}">${i.type}</span> ${i.cat||''}</div><div class="sub">${i.date} · ${i.person||''} ${i.note||''}</div></div><div class="val ${i.type==='收入'?'in':'out'}">¥${f(i.amount)}</div></div>`).join(''):'<div class="empty">本月无记录</div>'}</div>`;
+    c.innerHTML=`<div class="summary"><div><div class="num" style="color:var(--g)">¥${f(ti)}</div><div class="lbl">总收入</div></div><div><div class="num" style="color:var(--r)">¥${f(to)}</div><div class="lbl">总支出</div></div><div><div class="num" style="color:${ti>=to?'var(--g)':'var(--r)'}">¥${f(ti-to)}</div><div class="lbl">盈亏</div></div></div><div class="card"><h3>分类汇总</h3>${Object.entries(byCat).sort((a,b)=>b[1]-a[1]).map(([k,v])=>{const pct=ti+to>0?Math.round(v/(ti+to)*100):0;return`<div class="chart-bar"><span class="bar-label">${k}</span><div style="flex:1;background:#eee;border-radius:4px;height:18px"><div class="bar-fill" style="width:${pct}%;background:${k.includes('支出')||v<0?'var(--r)':'var(--g)'}"></div></div><span class="bar-val">¥${f(v)}</span></div>`}).join('')||'<div class="empty">无数据</div>'}</div><div class="card"><h3>流水明细</h3>${items.length?items.sort((a,b)=>b.date>a.date?1:-1).map(i=>`<div class="list-item"><div class="info"><div class="title"><span class="badge ${i.type==='收入'?'badge-in':'badge-out'}">${i.type}</span> ${i.cat||''}</div><div class="sub">${i.date} · ${i.person||''} ${i.note||''}</div></div><div class="val ${i.type==='收入'?'in':'out'}">¥${f(i.amount)}</div></div>`).join(''):'<div class="empty">本月无记录</div>'}</div>`;
   }else if(tab.includes('薪资')){
     const ygs=await dbg('yg');const leaves=await dbg('leave');const dim=new Date(parseInt(month.split('-')[0]),parseInt(month.split('-')[1]),0).getDate();
     c.innerHTML='<div class="card"><h3>'+month+' 薪资报表</h3>'+ygs.map(yg=>{const yl=leaves.filter(l=>l.empId===yg.id&&gm(l.startDate)===month);const ld=yl.reduce((s,l)=>s+(l.days||0),0);const ad=dim-ld;const sal=yg.salary/dim*ad;return`<div class="list-item"><div class="info"><div class="title">${yg.name} (${yg.role||''})</div><div class="sub">出勤${ad}天 · 请假${ld}天</div></div><div class="val" style="color:var(--o)">¥${f(sal)}</div></div>`}).join('')+'</div>';
@@ -542,6 +550,7 @@ async function initApp(){
   document.getElementById('bb-month').value=now;
   document.getElementById('m-sz-date').value=new Date().toISOString().split('T')[0];
   loadSZList();
+  setTimeout(async()=>{const ing=await dbg('ingredient');const low=ing.filter(i=>i.currentStock>0&&i.warnLevel>0&&i.currentStock<=i.warnLevel);if(low.length)t('低库存预警: '+low.map(i=>i.name).join('、'))},2000);
   setInterval(()=>{document.getElementById('clock').textContent=new Date().toLocaleTimeString('zh-CN',{hour12:false})},1000);
 }
 </script>
