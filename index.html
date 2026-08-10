@@ -144,12 +144,14 @@ input:focus,select:focus{outline:none;border-color:var(--o);background:#fff}
   <div class="tab-row" id="kc-subtabs">
     <button class="active" onclick="kcSubTab('ingredient')">食材清单</button>
     <button onclick="kcSubTab('product')">产品管理</button>
+    <button onclick="kcSubTab('prodcat')">产品分类</button>
     <button onclick="kcSubTab('bom')">配方BOM</button>
     <button onclick="kcSubTab('prodrec')">生产记录</button>
   </div>
   <div id="kc-alert-bar" style="display:none;background:#f05b5b10;border:1px solid #f05b5b30;border-radius:8px;padding:6px 10px;margin-bottom:8px;color:var(--r);font-size:.7rem"></div>
   <div id="kc-ingredient-list"></div>
   <div id="kc-product-list" style="display:none"></div>
+  <div id="kc-prodcat-list" style="display:none"></div>
   <div id="kc-bom-list" style="display:none"></div>
   <div id="kc-prodrec-list" style="display:none"></div>
   <button class="fab" id="kc-fab" onclick="openModal('modal-kc-ing')">+</button>
@@ -217,7 +219,7 @@ input:focus,select:focus{outline:none;border-color:var(--o);background:#fff}
 <div class="modal-overlay" id="modal-kc-prod"><div class="modal">
   <h3 id="modal-kc-prod-title">产品信息</h3>
   <input id="m-prod-name" placeholder="产品名称（如：招牌麻辣锅底）">
-  <input id="m-prod-cat" placeholder="产品分类（锅底/荤菜/素菜/小吃/饮品）">
+  <select id="m-prod-cat"><option value="">选择分类</option></select>
   <input type="number" id="m-prod-price" placeholder="售价（元）" step="0.01">
   <input id="m-prod-note" placeholder="备注">
   <div class="row"><button class="btn btn-o btn-block" onclick="saveProduct()">保存</button><button class="btn btn-o1 btn-block" onclick="closeModal('modal-kc-prod')">取消</button></div>
@@ -252,6 +254,13 @@ input:focus,select:focus{outline:none;border-color:var(--o);background:#fff}
   <input type="date" id="m-io-date">
   <input id="m-io-note" placeholder="备注">
   <div class="row"><button class="btn btn-o btn-block" onclick="saveStockIO()">保存</button><button class="btn btn-o1 btn-block" onclick="closeModal('modal-stock-io')">取消</button></div>
+</div></div>
+
+<div class="modal-overlay" id="modal-prodcat"><div class="modal">
+  <h3>添加产品分类</h3>
+  <input id="m-prodcat-name" placeholder="分类名称（如：锅底、荤菜、素菜）">
+  <input id="m-prodcat-note" placeholder="备注">
+  <div class="row"><button class="btn btn-o btn-block" onclick="saveProdCat()">保存</button><button class="btn btn-o1 btn-block" onclick="closeModal('modal-prodcat')">取消</button></div>
 </div></div>
 
 <div class="modal-overlay" id="modal-budget"><div class="modal">
@@ -365,7 +374,7 @@ async function refreshDrops(){
   const yg=await dbg('yg');const prod=await dbg('product');const ing=await dbg('ingredient');
   document.getElementById('m-leave-emp').innerHTML='<option value="">选择员工</option>'+yg.map(e=>`<option value="${e.id}">${e.name}</option>`).join('');
   document.getElementById('m-bom-prod').innerHTML='<option value="">选择产品</option>'+prod.map(e=>`<option value="${e.id}">${e.name}</option>`).join('');
-  document.getElementById('m-bom-ing').innerHTML='<option value="">选择食材</option>'+ing.map(e=>`<option value="${e.id}">${e.name}</option>`).join('');
+  refreshProdCatDropdown();document.getElementById('m-bom-ing').innerHTML='<option value="">选择食材</option>'+ing.map(e=>`<option value="${e.id}">${e.name}</option>`).join('');
   document.getElementById('m-io-ing').innerHTML='<option value="">选择食材</option>'+ing.map(e=>`<option value="${e.id}">${e.name}</option>`).join('');
   document.getElementById('m-prodrec-prod').innerHTML='<option value="">选择产品</option>'+prod.map(e=>`<option value="${e.id}">${e.name}</option>`).join('');
 }
@@ -432,11 +441,12 @@ function kcSubTab(t){
   document.getElementById('kc-product-list').style.display=t==='product'?'block':'none';
   document.getElementById('kc-bom-list').style.display=t==='bom'?'block':'none';
   document.getElementById('kc-prodrec-list').style.display=t==='prodrec'?'block':'none';
+  document.getElementById('kc-prodcat-list').style.display=t==='prodcat'?'block':'none';
   const fab=document.getElementById('kc-fab');fab.style.display='flex';
-  fab.onclick=t==='ingredient'?()=>{document.getElementById('m-ing-id').value='';document.getElementById('modal-kc-ing-title').textContent='新增食材';document.getElementById('m-ing-name').value='';document.getElementById('m-ing-cat').value='';document.getElementById('m-ing-unit').value='';document.getElementById('m-ing-stock').value='';document.getElementById('m-ing-warn').value='';document.getElementById('m-ing-note').value='';openModal('modal-kc-ing')}:t==='product'?()=>{document.getElementById('m-prod-id').value='';document.getElementById('modal-kc-prod-title').textContent='新增产品';document.getElementById('m-prod-name').value='';document.getElementById('m-prod-cat').value='';document.getElementById('m-prod-price').value='';document.getElementById('m-prod-note').value='';openModal('modal-kc-prod')}:t==='bom'?()=>{refreshDrops();openModal('modal-kc-bom')}:()=>openProdRecModal();
+  fab.onclick=t==='ingredient'?:()=>openModal('modal-prodcat')=>{document.getElementById('m-ing-id').value='';document.getElementById('modal-kc-ing-title').textContent='新增食材';document.getElementById('m-ing-name').value='';document.getElementById('m-ing-cat').value='';document.getElementById('m-ing-unit').value='';document.getElementById('m-ing-stock').value='';document.getElementById('m-ing-warn').value='';document.getElementById('m-ing-note').value='';openModal('modal-kc-ing')}:t==='product'?()=>{document.getElementById('m-prod-id').value='';document.getElementById('modal-kc-prod-title').textContent='新增产品';document.getElementById('m-prod-name').value='';document.getElementById('m-prod-cat').value='';document.getElementById('m-prod-price').value='';document.getElementById('m-prod-note').value='';openModal('modal-kc-prod')}:t==='bom'?()=>{refreshDrops();openModal('modal-kc-bom')}:()=>openProdRecModal();
   document.querySelectorAll('#kc-subtabs button').forEach(b=>b.classList.remove('active'));
-  document.querySelectorAll('#kc-subtabs button')[({ingredient:0,product:1,bom:2,prodrec:3}[t])].classList.add('active');
-  if(t==='ingredient')loadKCIngredients();if(t==='product')loadKCProducts();if(t==='bom'){loadKCBOMs();refreshDrops()}if(t==='prodrec'){loadProdRecList();refreshDrops()}
+  document.querySelectorAll('#kc-subtabs button')[({ingredient:0,product:1,bom:2,prodrec:3,prodcat:4}[t])].classList.add('active');
+  if(t==='ingredient')loadKCIngredients();if(t==='product')loadKCProducts();if(t==='bom'){loadKCBOMs();refreshDrops()}if(t==='prodrec'){loadProdRecList();refreshDrops()}if(t==='prodcat'){loadProdCats()}
 }
 // Ingredient CRUD
 async function editIngredient(id){const i=await db1('ingredient',id);if(i){document.getElementById('m-ing-id').value=i.id;document.getElementById('modal-kc-ing-title').textContent='编辑食材';document.getElementById('m-ing-name').value=i.name||'';document.getElementById('m-ing-cat').value=i.cat||'';document.getElementById('m-ing-unit').value=i.unit||'';document.getElementById('m-ing-stock').value=i.currentStock||'';document.getElementById('m-ing-warn').value=i.warnLevel||'';document.getElementById('m-ing-note').value=i.note||'';openModal('modal-kc-ing')}}
@@ -447,6 +457,26 @@ async function saveIngredient(){
   closeModal('modal-kc-ing');loadKCIngredients();t('已保存');
 }
 async function deleteIngredient(id){if(confirm('确认删除？')){await dbd('ingredient',id);loadKCIngredients();t('已删除')}}
+
+// Product Categories
+async function saveProdCat(){
+  const name=document.getElementById('m-prodcat-name').value.trim();
+  if(!name){t('请输入分类名称');return}
+  await dba('prodcat',{name:name,note:document.getElementById('m-prodcat-note').value.trim()});
+  closeModal('modal-prodcat');loadProdCats();t('分类已保存');
+}
+async function loadProdCats(){
+  const items=await dbg('prodcat');const list=document.getElementById('kc-prodcat-list');
+  if(!items.length){list.innerHTML='<div class="empty">暂无分类，点右下角+添加</div>';return}
+  list.innerHTML=items.map(i=>`<div class="list-item"><div class="info"><div class="title">${i.name}</div><div class="sub">${i.note||''}</div></div><button class="btn btn-sm btn-r" onclick="event.stopPropagation();deleteProdCat(${i.id})">删</button></div>`).join('');
+}
+async function deleteProdCat(id){if(confirm('确认删除？')){await dbd('prodcat',id);loadProdCats();t('已删除')}}
+async function refreshProdCatDropdown(){
+  const cats=await dbg('prodcat');
+  const sel=document.getElementById('m-prod-cat');
+  if(sel)sel.innerHTML='<option value="">选择分类</option>'+cats.map(c=>`<option value="${c.name}">${c.name}</option>`).join('');
+}
+
 // Product CRUD
 async function editProduct(id){const i=await db1('product',id);if(i){document.getElementById('m-prod-id').value=i.id;document.getElementById('modal-kc-prod-title').textContent='编辑产品';document.getElementById('m-prod-name').value=i.name||'';document.getElementById('m-prod-cat').value=i.cat||'';document.getElementById('m-prod-price').value=i.price||'';document.getElementById('m-prod-note').value=i.note||'';openModal('modal-kc-prod')}}
 async function saveProduct(){
