@@ -90,6 +90,7 @@ input:focus,select:focus{outline:none;border-color:var(--o);background:#fff}
 </head>
 <body>
 
+<div id="offline-bar" style="display:none;background:#f05b5b;color:#fff;text-align:center;padding:4px;font-size:.7rem">📴 离线模式 - 数据存本地，恢复网络后自动同步</div>
 <header><h1>🍲 七喜呱呱老火锅（宁武店）</h1><span id="clock" style="font-size:.7rem"></span></header>
 
 <nav>
@@ -312,16 +313,36 @@ input:focus,select:focus{outline:none;border-color:var(--o);background:#fff}
 </div></div>
 
 <script>
-// ====== DATABASE (Supabase) ======
+// ====== DATABASE (Supabase + Offline) ======
 const SB_URL='https://dzmyonfsztrpvuicgtjm.supabase.co/rest/v1';
 const SB_KEY='sb_publishable_oLSyHseKehgHTc6W_qB8XA_wVBvwGPv';
 const SB_HEADERS={'apikey':SB_KEY,'Authorization':'Bearer '+SB_KEY,'Content-Type':'application/json'};
-async function odb(){return true} // no-op for Supabase
-async function dba(s,d){const r=await fetch(SB_URL+'/'+s,{method:'POST',headers:{...SB_HEADERS,'Prefer':'return=representation'},body:JSON.stringify(d)});const j=await r.json();return Array.isArray(j)?j[0]?.id:j?.id}
-async function dbp(s,d){const id=d.id;delete d.id;await fetch(SB_URL+'/'+s+'?id=eq.'+id,{method:'PATCH',headers:{...SB_HEADERS,'Prefer':'return=representation'},body:JSON.stringify(d)});return id}
-async function dbg(s){const r=await fetch(SB_URL+'/'+s+'?select=*&order=id.desc',{headers:SB_HEADERS});return await r.json()}
-async function db1(s,i){const r=await fetch(SB_URL+'/'+s+'?id=eq.'+i+'&select=*',{headers:SB_HEADERS});const j=await r.json();return j?.[0]}
-async function dbd(s,i){await fetch(SB_URL+'/'+s+'?id=eq.'+i,{method:'DELETE',headers:SB_HEADERS})}
+var isOnline=navigator.onLine;var offlineQueue=[];
+var _idb=null;
+window.addEventListener('online',function(){isOnline=true;var b=document.getElementById('offline-bar');if(b)b.style.display='none';syncOffline()});
+window.addEventListener('offline',function(){isOnline=false;var b=document.getElementById('offline-bar');if(b)b.style.display='block'});
+function _idbOpen(){return new Promise(function(r){if(_idb){r(_idb);return}var q=indexedDB.open('hotpot_off',4);q.onupgradeneeded=function(e){var d=e.target.result;['sz','yg','leave','ingredient','product','bom','stockio','prodrec','budget','prodcat'].forEach(function(s){if(!d.objectStoreNames.contains(s))d.createObjectStore(s,{keyPath:'id',autoIncrement:true})})};q.onsuccess=function(e){_idb=e.target.result;r(_idb)};q.onerror=function(){r(null)}})}
+function _idba(s,d){return new Promise(function(r){_idbOpen().then(function(db){if(!db){r(null);return}var t=db.transaction(s,'readwrite').objectStore(s);var q=t.add(d);q.onsuccess=function(){r(q.result)};q.onerror=function(){r(null)}})})}
+function _idbg(s){return new Promise(function(r){_idbOpen().then(function(db){if(!db){r([]);return}var t=db.transaction(s,'readonly').objectStore(s);t.getAll().onsuccess=function(e){r(e.target.result||[])};t.getAll().onerror=function(){r([])}})})}
+function _idbp(s,d){return new Promise(function(r){_idbOpen().then(function(db){if(!db){r(null);return}var t=db.transaction(s,'readwrite').objectStore(s);t.put(d);t.oncomplete=function(){r(d.id)}})})}
+function _idbd(s,i){return new Promise(function(r){_idbOpen().then(function(db){if(!db){r();return}var t=db.transaction(s,'readwrite').objectStore(s);t.delete(i);t.oncomplete=function(){r()}})})}
+async function syncOffline(){if(offlineQueue.length===0)return;t('同步离线数据...');for(var i=0;i<offlineQueue.length;i++){try{var item=offlineQueue[i];await fetch(SB_URL+'/'+item.s,{method:'POST',headers:{...SB_HEADERS,'Prefer':'return=representation'},body:JSON.stringify(item.d)})}catch(e){}}offlineQueue=[];t('同步完成')}
+async function odb(){return true}
+async function dba(s,d){
+  if(!isOnline){var lid=await _idba(s,d);offlineQueue.push({s:s,d:d});return lid}
+  try{var r=await fetch(SB_URL+'/'+s,{method:'POST',headers:{...SB_HEADERS,'Prefer':'return=representation'},body:JSON.stringify(d)});if(!r.ok)throw new Error();var j=await r.json();return Array.isArray(j)?j[0]?.id:j?.id}catch(e){isOnline=false;return dba(s,d)}}
+async function dbp(s,d){
+  if(!isOnline){await _idbp(s,d);return d.id}
+  try{var id=d.id;delete d.id;var r=await fetch(SB_URL+'/'+s+'?id=eq.'+id,{method:'PATCH',headers:{...SB_HEADERS,'Prefer':'return=representation'},body:JSON.stringify(d)});if(!r.ok)throw new Error();return id}catch(e){isOnline=false;return dbp(s,d)}}
+async function dbg(s){
+  if(!isOnline)return _idbg(s)
+  try{var r=await fetch(SB_URL+'/'+s+'?select=*&order=id.desc',{headers:SB_HEADERS});if(!r.ok)throw new Error();return await r.json()}catch(e){isOnline=false;return dbg(s)}}
+async function db1(s,i){
+  if(!isOnline){var all=await _idbg(s);return all.find(function(x){return x.id===i})}
+  try{var r=await fetch(SB_URL+'/'+s+'?id=eq.'+i+'&select=*',{headers:SB_HEADERS});if(!r.ok)throw new Error();var j=await r.json();return j?.[0]}catch(e){isOnline=false;return db1(s,i)}}
+async function dbd(s,i){
+  if(!isOnline){await _idbd(s,i);return}
+  try{var r=await fetch(SB_URL+'/'+s+'?id=eq.'+i,{method:'DELETE',headers:SB_HEADERS});if(!r.ok)throw new Error()}catch(e){isOnline=false;await dbd(s,i)}}
 
 // ====== UI HELPERS ======
 function t(m){const e=document.getElementById('toast');e.textContent=m;e.classList.add('show');setTimeout(()=>e.classList.remove('show'),1800)}
