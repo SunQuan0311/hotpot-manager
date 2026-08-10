@@ -8,7 +8,8 @@
 <meta name="theme-color" content="#C41E1E">
 <title>七喜呱呱老火锅（宁武店）</title>
 <link rel="manifest" href="manifest.json">
-<script>if('serviceWorker' in navigator)navigator.serviceWorker.register('sw.js')</script>
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<script>if('serviceWorker' in navigator){navigator.serviceWorker.getRegistrations().then(function(r){r.forEach(function(s){s.unregister()})})}</script>
 <style>
 :root{--o:#C41E1E;--g:#4caf84;--b:#5b9cf5;--r:#f05b5b;--bg:#f5f5f5;--card:#fff;--t:#333;--d:#999}
 *{margin:0;padding:0;box-sizing:border-box}
@@ -104,7 +105,12 @@ input:focus,select:focus{outline:none;border-color:var(--o);background:#fff}
     <h2>七喜呱呱老火锅</h2>
     <div class="sub">宁武店 · 请输入密码</div>
     <div class="login-dots" id="loginDots"><div class="login-dot"></div><div class="login-dot"></div><div class="login-dot"></div><div class="login-dot"></div><div class="login-dot"></div><div class="login-dot"></div></div>
-    <div class="login-numpad" id="loginNumpad"></div>
+    <div class="login-numpad">
+      <button onclick="loginTap(1)">1</button><button onclick="loginTap(2)">2</button><button onclick="loginTap(3)">3</button>
+      <button onclick="loginTap(4)">4</button><button onclick="loginTap(5)">5</button><button onclick="loginTap(6)">6</button>
+      <button onclick="loginTap(7)">7</button><button onclick="loginTap(8)">8</button><button onclick="loginTap(9)">9</button>
+      <span></span><button onclick="loginTap(0)">0</button><button class="del" onclick="loginDel()">删除</button>
+    </div>
     <div class="login-msg" id="loginMsg"></div>
   </div>
 </div>
@@ -414,7 +420,11 @@ async function loadKCIngredients(){
 async function loadKCProducts(){
   const items=await dbg('product');const list=document.getElementById('kc-product-list');
   if(!items.length){list.innerHTML='<div class="empty">暂无产品，点右下角+添加</div>';return}
-  list.innerHTML=items.map(i=>`<div class="list-item"><div class="info"><div class="title">${i.name||''}</div><div class="sub">${i.cat||''} · 售价:¥${f(i.price)} ${i.note||''}</div></div><div style="display:flex;gap:2px"><button class="btn btn-sm btn-b" onclick="event.stopPropagation();editProduct(${i.id})">编</button><button class="btn btn-sm btn-r" onclick="event.stopPropagation();deleteProduct(${i.id})">删</button></div></div>`).join('');
+  const catOrder=['锅底','小料','特色推荐','新菜推荐','荤菜','特色素菜','素菜','涮肉','小吃','主食','饮品','酒水'];
+  const groups={};items.forEach(i=>{const c=i.cat||'未分类';if(!groups[c])groups[c]=[];groups[c].push(i)});
+  let h='';
+  for(const c of catOrder){if(!groups[c])continue;h+=`<div class="card"><h3>${c} (${groups[c].length})</h3>`;h+=groups[c].map(i=>`<div class="list-item"><div class="info"><div class="title">${i.name||''}</div><div class="sub">售价:¥${f(i.price)} ${i.note||''}</div></div><div style="display:flex;gap:2px"><button class="btn btn-sm btn-b" onclick="event.stopPropagation();editProduct(${i.id})">编</button><button class="btn btn-sm btn-r" onclick="event.stopPropagation();deleteProduct(${i.id})">删</button></div></div>`).join('');h+='</div>'}
+  list.innerHTML=h||'<div class="empty">暂无产品</div>';
 }
 async function loadKCBOMs(){
   const items=await dbg('bom');const prods=await dbg('product');const ings=await dbg('ingredient');
@@ -518,7 +528,6 @@ async function exportCSV(){const data=await dbg('sz');let csv='﻿类型,分类,
 
 // ====== LOGIN ======
 const PIN='479423';let loginInput='';
-function renderNumpad(){var p=document.getElementById('loginNumpad');if(!p)return;p.innerHTML='';for(var i=1;i<=9;i++){var b=document.createElement('button');b.textContent=i;b.onclick=(function(n){return function(){loginTap(n)}})(i);p.appendChild(b)}var eb=document.createElement('button');eb.className='empty';eb.disabled=true;p.appendChild(eb);var zb=document.createElement('button');zb.textContent='0';zb.onclick=function(){loginTap(0)};p.appendChild(zb);var db=document.createElement('button');db.className='del';db.textContent='删除';db.onclick=loginDel;p.appendChild(db)}renderNumpad();
 function loginTap(n){if(loginInput.length>=6)return;loginInput+=n;updateDots();if(loginInput.length===6)checkLogin()}
 function loginDel(){loginInput=loginInput.slice(0,-1);updateDots();document.getElementById('loginMsg').textContent=''}
 function updateDots(){document.querySelectorAll('#loginDots .login-dot').forEach((d,i)=>d.classList.toggle('filled',i<loginInput.length))}
