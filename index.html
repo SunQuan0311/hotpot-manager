@@ -126,7 +126,10 @@ input:focus,select:focus{outline:none;border-color:var(--o);background:#fff}
     <div><div class="num" style="color:var(--r)" id="sz-out">0</div><div class="lbl">月支出</div></div>
     <div><div class="num" id="sz-bal">0</div><div class="lbl">收支差</div></div>
   </div>
-  <div id="sz-budget-bar" style="margin-bottom:8px;font-size:.7rem;color:var(--d);text-align:center;cursor:pointer" onclick="setBudget()">月预算：未设置（点击设置）</div>
+  <div style="display:flex;gap:6px;margin-bottom:8px">
+    <button class="btn btn-sm btn-o" onclick="openMeituan()" style="flex:1">📋 美团日结</button>
+    <button class="btn btn-sm btn-o1" onclick="setBudget()" style="flex:1">月预算</button>
+  </div>
   <div class="filter-row">
     <input id="sz-search" placeholder="🔍 搜索" oninput="loadSZList()" style="flex:2">
     <select id="sz-filter-type" onchange="loadSZList()"><option value="">全部</option><option value="收入">收入</option><option value="支出">支出</option></select>
@@ -263,6 +266,18 @@ input:focus,select:focus{outline:none;border-color:var(--o);background:#fff}
   <input type="date" id="m-io-date">
   <input id="m-io-note" placeholder="备注">
   <div class="row"><button class="btn btn-o btn-block" onclick="saveStockIO()">保存</button><button class="btn btn-o1 btn-block" onclick="closeModal('modal-stock-io')">取消</button></div>
+</div></div>
+
+<div class="modal-overlay" id="modal-meituan"><div class="modal">
+  <h3>美团日结</h3>
+  <input type="date" id="m-mt-date">
+  <input type="number" id="m-mt-meituan" placeholder="美团今日营业额（元）" step="0.01">
+  <input type="number" id="m-mt-cash" placeholder="现金/其他收入（元）" step="0.01">
+  <select id="m-mt-cat"><option value="营业收入">分类：营业收入</option><option value="营业收入">营业收入</option><option value="其他收入">其他收入</option></select>
+  <input type="number" id="m-mt-cost" placeholder="今日支出（食材/杂费等，元）" step="0.01">
+  <input id="m-mt-note" placeholder="备注">
+  <div style="background:#f5f5f5;border-radius:6px;padding:8px;margin:8px 0;text-align:center;font-weight:600" id="m-mt-summary"></div>
+  <div class="row"><button class="btn btn-o btn-block" onclick="saveMeituan()">一键日结</button><button class="btn btn-o1 btn-block" onclick="closeModal('modal-meituan')">取消</button></div>
 </div></div>
 
 <div class="modal-overlay" id="modal-budget"><div class="modal">
@@ -526,6 +541,37 @@ async function loadReport(){
   }
 }
 function bbSubTab(t){const btns=document.querySelectorAll('#bb-subtabs button');btns.forEach(b=>b.classList.remove('active'));btns[{sz:0,salary:1,stock:2}[t]].classList.add('active');loadReport()}
+
+// 美团日结
+function openMeituan(){
+  document.getElementById('m-mt-date').value=new Date().toISOString().split('T')[0];
+  document.getElementById('m-mt-meituan').value='';document.getElementById('m-mt-cash').value='';
+  document.getElementById('m-mt-cost').value='';document.getElementById('m-mt-note').value='';
+  document.getElementById('m-mt-summary').textContent='';
+  document.getElementById('m-mt-meituan').oninput=updateMTSummary;
+  document.getElementById('m-mt-cash').oninput=updateMTSummary;
+  document.getElementById('m-mt-cost').oninput=updateMTSummary;
+  openModal('modal-meituan');
+}
+function updateMTSummary(){
+  const mt=parseFloat(document.getElementById('m-mt-meituan').value)||0;
+  const cash=parseFloat(document.getElementById('m-mt-cash').value)||0;
+  const cost=parseFloat(document.getElementById('m-mt-cost').value)||0;
+  document.getElementById('m-mt-summary').innerHTML=`总收入: ¥${f(mt+cash)} | 支出: ¥${f(cost)} | 净收入: ¥${f(mt+cash-cost)}`;
+}
+async function saveMeituan(){
+  const date=document.getElementById('m-mt-date').value;
+  const mt=parseFloat(document.getElementById('m-mt-meituan').value)||0;
+  const cash=parseFloat(document.getElementById('m-mt-cash').value)||0;
+  const cost=parseFloat(document.getElementById('m-mt-cost').value)||0;
+  const cat=document.getElementById('m-mt-cat').value;
+  const note=document.getElementById('m-mt-note').value.trim();
+  if(!mt&&!cash){t('请输入收入金额');return}
+  if(mt)await dba('sz',{type:'收入',cat:cat,amount:mt,date:date,pay:'美团',person:'日结',note:'美团日结收入'+(note?' '+note:'')});
+  if(cash)await dba('sz',{type:'收入',cat:cat,amount:cash,date:date,pay:'现金',person:'日结',note:'其他收入'+(note?' '+note:'')});
+  if(cost)await dba('sz',{type:'支出',cat:'其他支出',amount:cost,date:date,pay:'现金',person:'日结',note:'日结支出'+(note?' '+note:'')});
+  closeModal('modal-meituan');loadSZList();t('日结完成!');
+}
 
 // Budget
 async function setBudget(){const now=new Date().toISOString().split('T')[0].substring(0,7);document.getElementById('m-budget-month').value=now;document.getElementById('m-budget-amt').value='';const bs=await dbg('budget');const ex=bs.find(b=>b.month===now);if(ex)document.getElementById('m-budget-amt').value=ex.amount;openModal('modal-budget')}
