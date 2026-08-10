@@ -669,7 +669,7 @@ async function initApp(){
   setInterval(()=>{document.getElementById('clock').textContent=new Date().toLocaleTimeString('zh-CN',{hour12:false})},1000);
   // Smart notifications every 5 min
   checkAlerts();
-  setInterval(checkAlerts,300000);
+  setInterval(checkAlerts,43200000);
   // Daily settlement prompt
   checkDailySettlement();
 }
