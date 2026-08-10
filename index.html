@@ -8,7 +8,7 @@
 <meta name="theme-color" content="#C41E1E">
 <title>七喜呱呱老火锅（宁武店）v3</title>
 <link rel="manifest" href="manifest.json">
-<script>if('serviceWorker' in navigator)navigator.serviceWorker.register('sw.js')</script>
+<script>if('serviceWorker' in navigator){navigator.serviceWorker.getRegistrations().then(function(r){r.forEach(function(s){s.unregister()})})}</script>
 <style>
 :root{--o:#C41E1E;--g:#4caf84;--b:#5b9cf5;--r:#f05b5b;--bg:#f5f5f5;--card:#fff;--t:#333;--d:#999}
 *{margin:0;padding:0;box-sizing:border-box}
