@@ -667,6 +667,31 @@ async function initApp(){
   loadSZList();
   setTimeout(async()=>{const ing=await dbg('ingredient');const low=ing.filter(i=>i.currentStock>0&&i.warnLevel>0&&i.currentStock<=i.warnLevel);if(low.length)t('低库存预警: '+low.map(i=>i.name).join('、'))},2000);
   setInterval(()=>{document.getElementById('clock').textContent=new Date().toLocaleTimeString('zh-CN',{hour12:false})},1000);
+  // Smart notifications every 5 min
+  checkAlerts();
+  setInterval(checkAlerts,300000);
+  // Daily settlement prompt
+  checkDailySettlement();
+}
+async function checkAlerts(){
+  try{
+    var ing=await dbg('ingredient');var low=ing.filter(function(i){return i.currentStock>0&&i.warnLevel>0&&i.currentStock<=i.warnLevel});
+    if(low.length)t('低库存预警: '+low.map(function(i){return i.name}).join('、'));
+    var month=new Date().toISOString().substring(0,7);
+    var sz=await dbg('sz');var out=sz.filter(function(i){return i.type==='支出'&&i.date&&i.date.substring(0,7)===month}).reduce(function(s,i){return s+i.amount},0);
+    var bs=await dbg('budget');var b=bs.find(function(x){return x.month===month});
+    if(b&&out>b.amount)t('月支出¥'+f(out)+'已超预算¥'+f(b.amount)+'！');
+  }catch(e){}
+}
+async function checkDailySettlement(){
+  var yesterday=new Date();yesterday.setDate(yesterday.getDate()-1);
+  var yd=yesterday.toISOString().split('T')[0];
+  var sz=await dbg('sz');var yItems=sz.filter(function(i){return i.date===yd});
+  if(yItems.length>0&&!sessionStorage.getItem('settled_'+yd)){
+    var inc=yItems.filter(function(i){return i.type==='收入'}).reduce(function(s,i){return s+i.amount},0);
+    var exp=yItems.filter(function(i){return i.type==='支出'}).reduce(function(s,i){return s+i.amount},0);
+    if(inc>0&&confirm('昨日('+yd+')营收¥'+f(inc)+'，支出¥'+f(exp)+'。是否记录日结？')){sessionStorage.setItem('settled_'+yd,'1');t('日结已确认')}
+  }
 }
 
 // ====== SETTINGS ======
