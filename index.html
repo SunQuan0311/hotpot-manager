@@ -517,7 +517,7 @@ async function saveBudget(){const month=document.getElementById('m-budget-month'
 async function exportCSV(){const data=await dbg('sz');let csv='﻿类型,分类,金额,日期,支付方式,经手人,备注\n';data.forEach(i=>{csv+=`${i.type},${i.cat||''},${i.amount},${i.date||''},${i.pay||''},${i.person||''},${i.note||''}\n`});const b=new Blob([csv],{type:'text/csv'});const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='收支数据_'+new Date().toISOString().split('T')[0]+'.csv';a.click();t('导出成功')}
 
 // ====== LOGIN ======
-const PIN='123456';let loginInput='';
+const PIN='479423';let loginInput='';
 function renderNumpad(){var p=document.getElementById('loginNumpad');if(!p)return;p.innerHTML='';for(var i=1;i<=9;i++){var b=document.createElement('button');b.textContent=i;b.onclick=(function(n){return function(){loginTap(n)}})(i);p.appendChild(b)}var eb=document.createElement('button');eb.className='empty';eb.disabled=true;p.appendChild(eb);var zb=document.createElement('button');zb.textContent='0';zb.onclick=function(){loginTap(0)};p.appendChild(zb);var db=document.createElement('button');db.className='del';db.textContent='删除';db.onclick=loginDel;p.appendChild(db)}renderNumpad();
 function loginTap(n){if(loginInput.length>=6)return;loginInput+=n;updateDots();if(loginInput.length===6)checkLogin()}
 function loginDel(){loginInput=loginInput.slice(0,-1);updateDots();document.getElementById('loginMsg').textContent=''}
