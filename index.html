@@ -1,578 +1,583 @@
-<!DOCTYPE html>
-<html lang="zh-CN">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="theme-color" content="#C41E1E">
-<title>七喜呱呱老火锅（宁武店）v3</title>
-<link rel="manifest" href="manifest.json">
-<script>if('serviceWorker' in navigator)navigator.serviceWorker.register('sw.js')</script>
-<style>
-:root{--o:#C41E1E;--g:#4caf84;--b:#5b9cf5;--r:#f05b5b;--bg:#f5f5f5;--card:#fff;--t:#333;--d:#999}
-*{margin:0;padding:0;box-sizing:border-box}
-body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg);color:var(--t);padding-bottom:60px;max-width:100vw;overflow-x:hidden;-webkit-tap-highlight-color:transparent}
-header{background:linear-gradient(135deg,#8B0000,#C41E1E);color:#fff;padding:10px 14px;position:sticky;top:0;z-index:10;display:flex;justify-content:space-between;align-items:center}
-header h1{font-size:1rem;font-weight:600}
-nav{position:fixed;bottom:0;left:0;right:0;background:#fff;display:flex;border-top:1px solid #eee;z-index:10;padding-bottom:env(safe-area-inset-bottom)}
-nav button{flex:1;padding:6px 2px;border:none;background:none;color:var(--d);font-size:.62rem;display:flex;flex-direction:column;align-items:center;gap:1px;cursor:pointer;transition:color .2s}
-nav button.active{color:var(--o)}
-nav button .icon{font-size:1.2rem}
-.page{display:none;padding:10px}
-.page.active{display:block}
-.card{background:var(--card);border-radius:10px;padding:12px;margin-bottom:8px;box-shadow:0 1px 3px rgba(0,0,0,.06)}
-.card h3{font-size:.85rem;margin-bottom:6px;color:var(--o)}
-.row{display:flex;gap:6px;flex-wrap:wrap}
-.row>*{flex:1;min-width:60px}
-input,select,textarea{width:100%;padding:7px 8px;border:1px solid #ddd;border-radius:6px;font-size:.82rem;background:#fafafa;margin-bottom:6px}
-input:focus,select:focus{outline:none;border-color:var(--o);background:#fff}
-.btn{display:inline-block;padding:7px 14px;border:none;border-radius:6px;font-size:.78rem;font-weight:600;cursor:pointer;text-align:center;transition:opacity .15s}
-.btn:active{opacity:.7}
-.btn-o{background:var(--o);color:#fff}
-.btn-g{background:var(--g);color:#fff}
-.btn-b{background:var(--b);color:#fff}
-.btn-r{background:var(--r);color:#fff}
-.btn-o1{border:1px solid var(--o);color:var(--o);background:#fff}
-.btn-block{display:block;width:100%}
-.btn-sm{padding:4px 8px;font-size:.68rem}
-.list-item{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid #f0f0f0;font-size:.8rem}
-.list-item:last-child{border-bottom:none}
-.list-item .info{flex:1;min-width:0}
-.list-item .title{font-weight:600;font-size:.82rem}
-.list-item .sub{font-size:.68rem;color:var(--d);margin-top:1px}
-.list-item .val{font-weight:600;text-align:right;min-width:50px;font-size:.85rem}
-.list-item .val.in{color:var(--g)}
-.list-item .val.out{color:var(--r)}
-.badge{display:inline-block;padding:1px 7px;border-radius:10px;font-size:.62rem;font-weight:600}
-.badge-in{background:#4caf8415;color:var(--g)}
-.badge-out{background:#f05b5b15;color:var(--r)}
-.badge-warn{background:#ff6b3515;color:#ff6b35}
-.summary{display:flex;gap:6px;margin-bottom:10px}
-.summary>div{flex:1;background:var(--card);border-radius:8px;padding:8px;text-align:center;box-shadow:0 1px 3px rgba(0,0,0,.06)}
-.summary .num{font-size:1.1rem;font-weight:700}
-.summary .lbl{font-size:.58rem;color:var(--d);margin-top:1px}
-.empty{text-align:center;padding:30px 15px;color:var(--d);font-size:.8rem}
-.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:100;align-items:flex-end}
-.modal-overlay.show{display:flex}
-.modal{background:#fff;width:100%;border-radius:14px 14px 0 0;padding:14px;max-height:85vh;overflow-y:auto}
-.modal h3{font-size:.9rem;margin-bottom:10px;text-align:center;color:var(--o)}
-.fab{position:fixed;bottom:75px;right:14px;width:44px;height:44px;border-radius:50%;background:var(--o);color:#fff;font-size:1.3rem;border:none;box-shadow:0 3px 10px rgba(196,30,30,.4);cursor:pointer;z-index:5;display:flex;align-items:center;justify-content:center}
-.filter-row{display:flex;gap:6px;align-items:center;margin-bottom:8px}
-.filter-row select,.filter-row input{width:auto;flex:1;margin-bottom:0}
-.tab-row{display:flex;gap:3px;margin-bottom:8px;overflow-x:auto}
-.tab-row button{padding:5px 12px;border:1px solid #ddd;border-radius:14px;background:#fff;font-size:.7rem;white-space:nowrap;cursor:pointer}
-.tab-row button.active{background:var(--o);color:#fff;border-color:var(--o)}
-.toast{position:fixed;top:60px;left:50%;transform:translateX(-50%);background:#333;color:#fff;padding:6px 18px;border-radius:18px;font-size:.75rem;z-index:200;opacity:0;transition:opacity .3s;pointer-events:none}
-.toast.show{opacity:1}
-.login-page{position:fixed;inset:0;z-index:1000;background:url(bg_login.jpg) center/cover no-repeat;display:flex;flex-direction:column;align-items:center;justify-content:center;color:#fff}
-.login-overlay{position:absolute;inset:0;background:linear-gradient(180deg,rgba(139,0,0,.75),rgba(150,30,30,.7),rgba(0,0,0,.5))}
-.login-page.hidden{display:none}
-.login-card{position:relative;z-index:1;background:rgba(0,0,0,.4);backdrop-filter:blur(8px);border-radius:16px;padding:28px 20px;width:calc(100% - 40px);max-width:320px;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,.4);border:1px solid rgba(255,255,255,.1)}
-.login-emoji{font-size:3rem;margin-bottom:6px}
-.login-card h2{font-size:1.2rem;margin-bottom:2px;font-weight:700}
-.login-card .sub{font-size:.65rem;color:rgba(255,255,255,.55);margin-bottom:16px}
-.login-dots{display:flex;justify-content:center;gap:10px;margin-bottom:16px}
-.login-dot{width:12px;height:12px;border-radius:50%;border:2px solid rgba(255,255,255,.4);transition:all .2s}
-.login-dot.filled{background:#FFD700;border-color:#FFD700;box-shadow:0 0 10px rgba(255,215,0,.4)}
-.login-numpad{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:10px}
-.login-numpad button{aspect-ratio:1.2;border-radius:50%;border:1px solid rgba(255,255,255,.2);background:rgba(255,255,255,.08);color:#fff;font-size:1.2rem;font-weight:600;cursor:pointer;transition:all .15s}
-.login-numpad button:active{background:rgba(255,255,255,.25);transform:scale(.95)}
-.login-numpad .del{font-size:.7rem}
-.login-numpad .empty{background:transparent;border:none;pointer-events:none}
-.login-msg{font-size:.65rem;color:#FFD700;min-height:18px}
-</style>
-</head>
-<body>
-
-<header><h1>🍲 七喜呱呱老火锅（宁武店）</h1><span id="clock" style="font-size:.7rem"></span></header>
-
-<nav>
-<button class="active" onclick="switchTab('sz')"><span class="icon">💰</span>收支</button>
-<button onclick="switchTab('yg')"><span class="icon">👥</span>员工</button>
-<button onclick="switchTab('kc')"><span class="icon">🥩</span>库存</button>
-<button onclick="switchTab('bb')"><span class="icon">📊</span>报表</button>
-</nav>
-
-<div class="toast" id="toast"></div>
-
-<!-- LOGIN -->
-<div class="login-page" id="loginPage">
-  <div class="login-overlay"></div>
-  <div class="login-card">
-    <div class="login-emoji">🍲</div>
-    <h2>七喜呱呱老火锅</h2>
-    <div class="sub">宁武店 · 请输入密码</div>
-    <div class="login-dots" id="loginDots"><div class="login-dot"></div><div class="login-dot"></div><div class="login-dot"></div><div class="login-dot"></div><div class="login-dot"></div><div class="login-dot"></div></div>
-    <div class="login-numpad" id="loginNumpad"></div>
-    <div class="login-msg" id="loginMsg"></div>
-  </div>
-</div>
-
-<!-- TAB 1: 收支 -->
-<div class="page active" id="tab-sz">
-  <div class="summary">
-    <div><div class="num" style="color:var(--g)" id="sz-in">0</div><div class="lbl">月收入</div></div>
-    <div><div class="num" style="color:var(--r)" id="sz-out">0</div><div class="lbl">月支出</div></div>
-    <div><div class="num" id="sz-bal">0</div><div class="lbl">收支差</div></div>
-  </div>
-  <div id="sz-budget-bar" style="margin-bottom:8px;font-size:.7rem;color:var(--d);text-align:center;cursor:pointer" onclick="setBudget()">月预算：未设置（点击设置）</div>
-  <div class="filter-row">
-    <input id="sz-search" placeholder="🔍 搜索" oninput="loadSZList()" style="flex:2">
-    <select id="sz-filter-type" onchange="loadSZList()"><option value="">全部</option><option value="收入">收入</option><option value="支出">支出</option></select>
-    <input type="month" id="sz-filter-month" onchange="loadSZList()">
-  </div>
-  <div id="sz-list"></div>
-  <button class="fab" onclick="openSZModal()">+</button>
-</div>
-
-<!-- TAB 2: 员工 -->
-<div class="page" id="tab-yg">
-  <div class="tab-row" id="yg-subtabs">
-    <button class="active" onclick="ygSubTab('info')">员工信息</button>
-    <button onclick="ygSubTab('leave')">请假登记</button>
-    <button onclick="ygSubTab('attend')">月考勤</button>
-  </div>
-  <div id="yg-info-list"></div>
-  <div id="yg-leave-list" style="display:none"></div>
-  <div id="yg-attend-list" style="display:none"></div>
-  <button class="fab" id="yg-fab" onclick="openYGModal()">+</button>
-</div>
-
-<!-- TAB 3: 库存 -->
-<div class="page" id="tab-kc">
-  <div class="tab-row" id="kc-subtabs">
-    <button class="active" onclick="kcSubTab('ingredient')">食材清单</button>
-    <button onclick="kcSubTab('product')">产品管理</button>
-    <button onclick="kcSubTab('prodcat')">产品分类</button>
-    <button onclick="kcSubTab('bom')">配方BOM</button>
-    <button onclick="kcSubTab('prodrec')">生产记录</button>
-  </div>
-  <div id="kc-alert-bar" style="display:none;background:#f05b5b10;border:1px solid #f05b5b30;border-radius:8px;padding:6px 10px;margin-bottom:8px;color:var(--r);font-size:.7rem"></div>
-  <div id="kc-ingredient-list"></div>
-  <div id="kc-product-list" style="display:none"></div>
-  <div id="kc-prodcat-list" style="display:none"></div>
-  <div id="kc-bom-list" style="display:none"></div>
-  <div id="kc-prodrec-list" style="display:none"></div>
-  <button class="fab" id="kc-fab" onclick="openModal('modal-kc-ing')">+</button>
-</div>
-
-<!-- TAB 4: 报表 -->
-<div class="page" id="tab-bb">
-  <div class="tab-row" id="bb-subtabs">
-    <button class="active" onclick="bbSubTab('sz')">收支月报</button>
-    <button onclick="bbSubTab('salary')">薪资报表</button>
-    <button onclick="bbSubTab('stock')">库存台账</button>
-  </div>
-  <div class="filter-row"><input type="month" id="bb-month" onchange="loadReport()"><button class="btn btn-sm btn-b" onclick="exportCSV()">导出CSV</button></div>
-  <div id="bb-content"></div>
-</div>
-
-<!-- MODALS -->
-<div class="modal-overlay" id="modal-sz"><div class="modal">
-  <h3 id="modal-sz-title">新增收支</h3>
-  <select id="m-sz-type" onchange="updateSZCat()"><option value="">选择类型</option><option value="收入">收入</option><option value="支出">支出</option></select>
-  <select id="m-sz-cat"><option value="">请先选择类型</option></select>
-  <input type="number" id="m-sz-amt" placeholder="金额（元）" step="0.01">
-  <input type="date" id="m-sz-date">
-  <select id="m-sz-pay"><option value="">支付方式</option><option value="微信">微信</option><option value="支付宝">支付宝</option><option value="现金">现金</option><option value="银行卡">银行卡</option></select>
-  <input id="m-sz-person" placeholder="经手人">
-  <input id="m-sz-note" placeholder="备注">
-  <div class="row"><button class="btn btn-o btn-block" onclick="saveSZ()">保存</button><button class="btn btn-o1 btn-block" onclick="closeModal('modal-sz')">取消</button></div>
-  <input type="hidden" id="m-sz-id">
-</div></div>
-
-<div class="modal-overlay" id="modal-yg"><div class="modal">
-  <h3 id="modal-yg-title">新增员工</h3>
-  <input id="m-yg-name" placeholder="员工姓名">
-  <input id="m-yg-role" placeholder="岗位（厨师/服务员/收银员/店长）">
-  <input type="number" id="m-yg-salary" placeholder="月基础工资（元）" step="0.01">
-  <input type="date" id="m-yg-join">
-  <input id="m-yg-health" placeholder="健康证办理情况">
-  <input id="m-yg-note" placeholder="备注">
-  <div class="row"><button class="btn btn-o btn-block" onclick="saveYG()">保存</button><button class="btn btn-o1 btn-block" onclick="closeModal('modal-yg')">取消</button></div>
-  <input type="hidden" id="m-yg-id">
-</div></div>
-
-<div class="modal-overlay" id="modal-leave"><div class="modal">
-  <h3>请假登记</h3>
-  <select id="m-leave-emp"></select>
-  <select id="m-leave-type"><option value="">请假类型</option><option value="事假">事假</option><option value="病假">病假</option><option value="年假">年假</option><option value="调休">调休</option></select>
-  <input type="date" id="m-leave-start">
-  <input type="date" id="m-leave-end">
-  <input type="number" id="m-leave-days" placeholder="请假天数" step="0.5">
-  <div class="row"><button class="btn btn-o btn-block" onclick="saveLeave()">保存</button><button class="btn btn-o1 btn-block" onclick="closeModal('modal-leave')">取消</button></div>
-</div></div>
-
-<div class="modal-overlay" id="modal-kc-ing"><div class="modal">
-  <h3 id="modal-kc-ing-title">食材信息</h3>
-  <input id="m-ing-name" placeholder="食材名称（如：牛肉卷）">
-  <input id="m-ing-cat" placeholder="分类（肉类/蔬菜/调料/饮品）">
-  <input id="m-ing-unit" placeholder="单位（斤/袋/瓶/箱）">
-  <input type="number" id="m-ing-stock" placeholder="当前库存数量" step="0.01">
-  <input type="number" id="m-ing-warn" placeholder="安全预警阈值" step="0.01">
-  <input id="m-ing-note" placeholder="备注">
-  <div class="row"><button class="btn btn-o btn-block" onclick="saveIngredient()">保存</button><button class="btn btn-o1 btn-block" onclick="closeModal('modal-kc-ing')">取消</button></div>
-  <input type="hidden" id="m-ing-id">
-</div></div>
-
-<div class="modal-overlay" id="modal-kc-prod"><div class="modal">
-  <h3 id="modal-kc-prod-title">产品信息</h3>
-  <input id="m-prod-name" placeholder="产品名称（如：招牌麻辣锅底）">
-  <select id="m-prod-cat"><option value="">选择分类</option></select>
-  <input type="number" id="m-prod-price" placeholder="售价（元）" step="0.01">
-  <input id="m-prod-note" placeholder="备注">
-  <div class="row"><button class="btn btn-o btn-block" onclick="saveProduct()">保存</button><button class="btn btn-o1 btn-block" onclick="closeModal('modal-kc-prod')">取消</button></div>
-  <input type="hidden" id="m-prod-id">
-</div></div>
-
-<div class="modal-overlay" id="modal-kc-bom"><div class="modal">
-  <h3>BOM配方</h3>
-  <select id="m-bom-prod"></select>
-  <select id="m-bom-ing"></select>
-  <input type="number" id="m-bom-qty" placeholder="用量" step="0.001">
-  <input id="m-bom-unit" placeholder="用量单位（克/毫升/个）">
-  <input id="m-bom-note" placeholder="备注">
-  <div class="row"><button class="btn btn-o btn-block" onclick="saveBOM()">保存</button><button class="btn btn-o1 btn-block" onclick="closeModal('modal-kc-bom')">取消</button></div>
-</div></div>
-
-<div class="modal-overlay" id="modal-prodrec"><div class="modal">
-  <h3>产品生产记录</h3>
-  <select id="m-prodrec-prod" onchange="previewProdCost()"></select>
-  <input type="number" id="m-prodrec-qty" placeholder="生产数量" step="1" oninput="previewProdCost()">
-  <input type="date" id="m-prodrec-date">
-  <div id="m-prodrec-preview" style="background:#f5f5f5;border-radius:6px;padding:6px 8px;margin:6px 0;font-size:.7rem;color:var(--d);min-height:20px"></div>
-  <input id="m-prodrec-note" placeholder="备注">
-  <div class="row"><button class="btn btn-o btn-block" onclick="saveProdRec()">保存并扣减库存</button><button class="btn btn-o1 btn-block" onclick="closeModal('modal-prodrec')">取消</button></div>
-</div></div>
-
-<div class="modal-overlay" id="modal-stock-io"><div class="modal">
-  <h3>出入库</h3>
-  <select id="m-io-type"><option value="入库">入库</option><option value="出库">出库</option></select>
-  <select id="m-io-ing"></select>
-  <input type="number" id="m-io-qty" placeholder="数量" step="0.01">
-  <input type="date" id="m-io-date">
-  <input id="m-io-note" placeholder="备注">
-  <div class="row"><button class="btn btn-o btn-block" onclick="saveStockIO()">保存</button><button class="btn btn-o1 btn-block" onclick="closeModal('modal-stock-io')">取消</button></div>
-</div></div>
-
-<div class="modal-overlay" id="modal-prodcat"><div class="modal">
-  <h3>添加产品分类</h3>
-  <input id="m-prodcat-name" placeholder="分类名称（如：锅底、荤菜、素菜）">
-  <input id="m-prodcat-note" placeholder="备注">
-  <div class="row"><button class="btn btn-o btn-block" onclick="saveProdCat()">保存</button><button class="btn btn-o1 btn-block" onclick="closeModal('modal-prodcat')">取消</button></div>
-</div></div>
-
-<div class="modal-overlay" id="modal-budget"><div class="modal">
-  <h3>设置月预算</h3>
-  <input type="month" id="m-budget-month">
-  <input type="number" id="m-budget-amt" placeholder="预算金额（元）" step="0.01">
-  <div class="row"><button class="btn btn-o btn-block" onclick="saveBudget()">保存</button><button class="btn btn-o1 btn-block" onclick="closeModal('modal-budget')">取消</button></div>
-</div></div>
-
-<script>
-// ====== DATABASE (Supabase) ======
-const SB_URL='https://dzmyonfsztrpvuicgtjm.supabase.co/rest/v1';
-const SB_KEY='sb_publishable_oLSyHseKehgHTc6W_qB8XA_wVBvwGPv';
-const SB_HEADERS={'apikey':SB_KEY,'Authorization':'Bearer '+SB_KEY,'Content-Type':'application/json'};
-async function odb(){return true} // no-op for Supabase
-async function dba(s,d){const r=await fetch(SB_URL+'/'+s,{method:'POST',headers:{...SB_HEADERS,'Prefer':'return=representation'},body:JSON.stringify(d)});const j=await r.json();return Array.isArray(j)?j[0]?.id:j?.id}
-async function dbp(s,d){const id=d.id;delete d.id;await fetch(SB_URL+'/'+s+'?id=eq.'+id,{method:'PATCH',headers:{...SB_HEADERS,'Prefer':'return=representation'},body:JSON.stringify(d)});return id}
-async function dbg(s){const r=await fetch(SB_URL+'/'+s+'?select=*&order=id.desc',{headers:SB_HEADERS});return await r.json()}
-async function db1(s,i){const r=await fetch(SB_URL+'/'+s+'?id=eq.'+i+'&select=*',{headers:SB_HEADERS});const j=await r.json();return j?.[0]}
-async function dbd(s,i){await fetch(SB_URL+'/'+s+'?id=eq.'+i,{method:'DELETE',headers:SB_HEADERS})}
-
-// ====== UI HELPERS ======
-function t(m){const e=document.getElementById('toast');e.textContent=m;e.classList.add('show');setTimeout(()=>e.classList.remove('show'),1800)}
-function f(n){return n==null||isNaN(n)?'0.00':Number(n).toFixed(2)}
-function fd(d){if(!d)return'';return new Date(d).toLocaleDateString('zh-CN')}
-function gm(d){return d?d.substring(0,7):''}
-function closeModal(id){document.getElementById(id).classList.remove('show')}
-function openModal(id){document.getElementById(id).classList.add('show')}
-
-// ====== TABS ======
-function switchTab(t){
-  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
-  document.getElementById('tab-'+t).classList.add('active');
-  document.querySelectorAll('nav button').forEach((b,i)=>{b.classList.toggle('active',{sz:0,yg:1,kc:2,bb:3}[t]===i)});
-  if(t==='sz')loadSZList();
-  if(t==='yg'){loadYGList();document.querySelectorAll('#yg-subtabs button')[0].click()}
-  if(t==='kc'){loadKCIngredients();document.querySelectorAll('#kc-subtabs button')[0].click()}
-  if(t==='bb'){document.querySelectorAll('#bb-subtabs button')[0].click();loadReport()}
-}
-
-// ====== TAB 1: 收支 ======
-async function loadSZList(){
-  const data=await dbg('sz');
-  const type=document.getElementById('sz-filter-type').value;
-  const month=document.getElementById('sz-filter-month').value;
-  const search=(document.getElementById('sz-search').value||'').toLowerCase();
-  let items=data.sort((a,b)=>b.date>a.date?1:-1);
-  if(type)items=items.filter(i=>i.type===type);
-  if(month)items=items.filter(i=>gm(i.date)===month);
-  if(search)items=items.filter(i=>(i.cat||'').includes(search)||(i.note||'').includes(search)||(i.person||'').includes(search));
-  let ti=0,to=0;items.forEach(i=>{if(i.type==='收入')ti+=i.amount;else to+=i.amount});
-  document.getElementById('sz-in').textContent=f(ti);
-  document.getElementById('sz-out').textContent=f(to);
-  document.getElementById('sz-bal').textContent=f(ti-to);
-  document.getElementById('sz-bal').style.color=ti>=to?'var(--g)':'var(--r)';
-  // Budget
-  const bs=await dbg('budget');const b=bs.find(x=>x.month===month);
-  const be=document.getElementById('sz-budget-bar');
-  if(b)be.innerHTML=`月预算: ¥${f(b.amount)} | 已用: ¥${f(to)} | ${to>b.amount?'<span style="color:var(--r)">超支 ¥'+f(to-b.amount)+'</span>':'<span style="color:var(--g)">剩余 ¥'+f(b.amount-to)+'</span>'}`;
-  else be.innerHTML='月预算：未设置（点击设置）';
-  const list=document.getElementById('sz-list');
-  if(!items.length){list.innerHTML='<div class="empty">暂无收支记录，点右下角+添加</div>';return}
-  list.innerHTML=items.map(i=>`<div class="list-item" onclick="editSZ(${i.id})"><div class="info"><div class="title"><span class="badge ${i.type==='收入'?'badge-in':'badge-out'}">${i.type}</span> ${i.cat||''}</div><div class="sub">${fd(i.date)}${i.pay?' · '+i.pay:''} · ${i.person||''} ${i.note||''}</div></div><div class="val ${i.type==='收入'?'in':'out'}">${i.type==='收入'?'+':'-'}¥${f(i.amount)}</div></div>`).join('');
-}
-function updateSZCat(){
-  const type=document.getElementById('m-sz-type').value;
-  const cats=type==='收入'?['营业收入','其他收入']:type==='支出'?['食材采购','设备维修','水电费','工资支出','房租','其他支出']:[];
-  document.getElementById('m-sz-cat').innerHTML=cats.length?cats.map(c=>`<option value="${c}">${c}</option>`).join(''):'<option value="">请先选择类型</option>';
-}
-async function openSZModal(id){
-  document.getElementById('m-sz-id').value='';document.getElementById('modal-sz-title').textContent='新增收支';
-  document.getElementById('m-sz-type').value='';updateSZCat();
-  document.getElementById('m-sz-amt').value='';document.getElementById('m-sz-date').value=new Date().toISOString().split('T')[0];
-  document.getElementById('m-sz-pay').value='';document.getElementById('m-sz-person').value='';document.getElementById('m-sz-note').value='';
-  if(id){document.getElementById('modal-sz-title').textContent='编辑收支';const i=await db1('sz',id);if(i){document.getElementById('m-sz-id').value=i.id;document.getElementById('m-sz-type').value=i.type||'';updateSZCat();document.getElementById('m-sz-cat').value=i.cat||'';document.getElementById('m-sz-amt').value=i.amount||'';document.getElementById('m-sz-date').value=i.date||'';document.getElementById('m-sz-pay').value=i.pay||'';document.getElementById('m-sz-person').value=i.person||'';document.getElementById('m-sz-note').value=i.note||''}}
-  openModal('modal-sz');
-}
-async function saveSZ(){
-  const id=document.getElementById('m-sz-id').value;
-  const data={type:document.getElementById('m-sz-type').value,cat:document.getElementById('m-sz-cat').value,amount:parseFloat(document.getElementById('m-sz-amt').value)||0,date:document.getElementById('m-sz-date').value,pay:document.getElementById('m-sz-pay').value,person:document.getElementById('m-sz-person').value.trim(),note:document.getElementById('m-sz-note').value.trim()};
-  if(!data.type||!data.amount){t('请填写类型和金额');return}
-  if(id){data.id=parseInt(id);await dbp('sz',data)}else{await dba('sz',data)}
-  closeModal('modal-sz');loadSZList();t('已保存');
-}
-async function editSZ(id){openSZModal(id)}
-async function deleteSZ(id){if(confirm('确认删除？')){await dbd('sz',id);loadSZList();t('已删除')}}
-
-// ====== TAB 2: 员工 ======
-async function loadYGList(){
-  const data=await dbg('yg');const list=document.getElementById('yg-info-list');
-  if(!data.length){list.innerHTML='<div class="empty">暂无员工，点右下角+添加</div>';return}
-  list.innerHTML=data.map(i=>`<div class="list-item"><div class="info"><div class="title">${i.name||''} <span style="font-size:.65rem;color:var(--d)">${i.role||''}</span></div><div class="sub">月薪:¥${f(i.salary)} · 入职:${fd(i.joinDate)} · 健康证:${i.health||'--'}</div></div><div style="display:flex;gap:3px"><button class="btn btn-sm btn-b" onclick="event.stopPropagation();editYG(${i.id})">编</button><button class="btn btn-sm btn-r" onclick="event.stopPropagation();deleteYG(${i.id})">删</button></div></div>`).join('');
-}
-async function openYGModal(id){
-  document.getElementById('m-yg-id').value='';document.getElementById('modal-yg-title').textContent='新增员工';
-  document.getElementById('m-yg-name').value='';document.getElementById('m-yg-role').value='';document.getElementById('m-yg-salary').value='';document.getElementById('m-yg-join').value='';document.getElementById('m-yg-health').value='';document.getElementById('m-yg-note').value='';
-  if(id){document.getElementById('modal-yg-title').textContent='编辑员工';const i=await db1('yg',id);if(i){document.getElementById('m-yg-id').value=i.id;document.getElementById('m-yg-name').value=i.name||'';document.getElementById('m-yg-role').value=i.role||'';document.getElementById('m-yg-salary').value=i.salary||'';document.getElementById('m-yg-join').value=i.joinDate||'';document.getElementById('m-yg-health').value=i.health||'';document.getElementById('m-yg-note').value=i.note||''}}
-  openModal('modal-yg');
-}
-async function saveYG(){
-  const id=document.getElementById('m-yg-id').value;
-  const data={name:document.getElementById('m-yg-name').value.trim(),role:document.getElementById('m-yg-role').value.trim(),salary:parseFloat(document.getElementById('m-yg-salary').value)||0,joinDate:document.getElementById('m-yg-join').value,health:document.getElementById('m-yg-health').value.trim(),note:document.getElementById('m-yg-note').value.trim()};
-  if(!data.name){t('请输入员工姓名');return}
-  if(id){data.id=parseInt(id);await dbp('yg',data)}else{await dba('yg',data)}
-  closeModal('modal-yg');loadYGList();refreshDrops();t('已保存');
-}
-async function editYG(id){openYGModal(id)}
-async function deleteYG(id){if(confirm('确认删除？')){await dbd('yg',id);loadYGList();t('已删除')}}
-
-async function refreshDrops(){
-  const yg=await dbg('yg');const prod=await dbg('product');const ing=await dbg('ingredient');
-  document.getElementById('m-leave-emp').innerHTML='<option value="">选择员工</option>'+yg.map(e=>`<option value="${e.id}">${e.name}</option>`).join('');
-  document.getElementById('m-bom-prod').innerHTML='<option value="">选择产品</option>'+prod.map(e=>`<option value="${e.id}">${e.name}</option>`).join('');
-  refreshProdCatDropdown();document.getElementById('m-bom-ing').innerHTML='<option value="">选择食材</option>'+ing.map(e=>`<option value="${e.id}">${e.name}</option>`).join('');
-  document.getElementById('m-io-ing').innerHTML='<option value="">选择食材</option>'+ing.map(e=>`<option value="${e.id}">${e.name}</option>`).join('');
-  document.getElementById('m-prodrec-prod').innerHTML='<option value="">选择产品</option>'+prod.map(e=>`<option value="${e.id}">${e.name}</option>`).join('');
-}
-async function saveLeave(){
-  const eid=parseInt(document.getElementById('m-leave-emp').value)||0;
-  const emp=await db1('yg',eid);
-  const data={empId:eid,empName:emp?emp.name:'',type:document.getElementById('m-leave-type').value,startDate:document.getElementById('m-leave-start').value,endDate:document.getElementById('m-leave-end').value,days:parseFloat(document.getElementById('m-leave-days').value)||0};
-  if(!data.empId||!data.type){t('请选择员工和类型');return}
-  await dba('leave',data);closeModal('modal-leave');loadLeaveList();loadAttendList();t('已保存');
-}
-async function loadLeaveList(){
-  const data=await dbg('leave');const list=document.getElementById('yg-leave-list');
-  if(!data.length){list.innerHTML='<div class="empty">暂无请假记录</div>';return}
-  list.innerHTML=data.sort((a,b)=>b.startDate>a.startDate?1:-1).map(i=>`<div class="list-item"><div class="info"><div class="title">${i.empName||''}</div><div class="sub">${i.type||''} · ${fd(i.startDate)}~${fd(i.endDate)} · ${i.days||0}天</div></div><button class="btn btn-sm btn-r" onclick="event.stopPropagation();deleteLeave(${i.id})">删</button></div>`).join('');
-}
-async function deleteLeave(id){if(confirm('确认删除？')){await dbd('leave',id);loadLeaveList();loadAttendList();t('已删除')}}
-async function loadAttendList(){
-  const ygs=await dbg('yg');const leaves=await dbg('leave');
-  const now=new Date();const ym=now.getFullYear()+'-'+String(now.getMonth()+1).padStart(2,'0');
-  const dim=new Date(now.getFullYear(),now.getMonth()+1,0).getDate();
-  const list=document.getElementById('yg-attend-list');
-  if(!ygs.length){list.innerHTML='<div class="empty">请先添加员工</div>';return}
-  list.innerHTML='<div class="card"><h3>'+ym+' 月考勤</h3>'+ygs.map(yg=>{const yl=leaves.filter(l=>l.empId===yg.id&&gm(l.startDate)===ym);const ld=yl.reduce((s,l)=>s+(l.days||0),0);const ad=dim-ld;const ds=yg.salary/dim;const ts=ds*ad;return`<div class="list-item"><div class="info"><div class="title">${yg.name} (${yg.role||''})</div><div class="sub">应出勤${dim}天 · 请假${ld}天 · 实到${ad}天 · 日薪¥${f(ds)}</div></div><div class="val" style="color:var(--o)">¥${f(ts)}</div></div>`}).join('')+'</div>';
-}
-function ygSubTab(t){
-  document.getElementById('yg-info-list').style.display=t==='info'?'block':'none';
-  document.getElementById('yg-leave-list').style.display=t==='leave'?'block':'none';
-  document.getElementById('yg-attend-list').style.display=t==='attend'?'block':'none';
-  document.getElementById('yg-fab').style.display=t==='attend'?'none':'flex';
-  document.getElementById('yg-fab').onclick=t==='info'?()=>openYGModal():()=>openModal('modal-leave');
-  const btns=document.querySelectorAll('#yg-subtabs button');btns.forEach(b=>b.classList.remove('active'));
-  btns[{info:0,leave:1,attend:2}[t]].classList.add('active');
-  if(t==='info')loadYGList();if(t==='leave'){loadLeaveList();refreshDrops()}if(t==='attend')loadAttendList();
-}
-
-// ====== TAB 3: 库存 ======
-async function loadKCIngredients(){
-  const items=await dbg('ingredient');const list=document.getElementById('kc-ingredient-list');
-  const alertDiv=document.getElementById('kc-alert-bar');
-  const low=items.filter(i=>i.currentStock!=null&&i.warnLevel!=null&&i.currentStock<=i.warnLevel);
-  alertDiv.style.display=low.length?'block':'none';
-  if(low.length)alertDiv.innerHTML='⚠️ 低库存预警：'+low.map(i=>i.name).join('、');
-  if(!items.length){list.innerHTML='<div class="empty">暂无食材，点右下角+添加</div>';return}
-  list.innerHTML=items.map(i=>{const isLow=i.currentStock!=null&&i.warnLevel!=null&&i.currentStock<=i.warnLevel;return`<div class="list-item" style="${isLow?'background:#f05b5b06':''}"><div class="info"><div class="title">${i.name||''} ${isLow?'<span class="badge badge-warn">低库存</span>':''}</div><div class="sub">${i.cat||''} · 库存:${i.currentStock||0}${i.unit||''} · 预警线:${i.warnLevel||0}${i.unit||''} ${i.note||''}</div></div><div style="display:flex;gap:2px"><button class="btn btn-sm btn-g" onclick="event.stopPropagation();stockIO(${i.id},'入库')">入</button><button class="btn btn-sm btn-r" onclick="event.stopPropagation();stockIO(${i.id},'出库')">出</button><button class="btn btn-sm btn-b" onclick="event.stopPropagation();editIngredient(${i.id})">编</button><button class="btn btn-sm btn-r" onclick="event.stopPropagation();deleteIngredient(${i.id})">删</button></div></div>`}).join('');
-}
-async function loadKCProducts(){
-  const items=await dbg('product');const list=document.getElementById('kc-product-list');
-  if(!items.length){list.innerHTML='<div class="empty">暂无产品，点右下角+添加</div>';return}
-  // Group by category
-  const groups={};items.forEach(i=>{const k=i.cat||'未分类';if(!groups[k])groups[k]=[];groups[k].push(i)});
-  let html='';
-  for(const [cat,prods] of Object.entries(groups)){
-    html+=`<div class="card"><h3>${cat} (${prods.length})</h3>`;
-    html+=prods.map(i=>`<div class="list-item"><div class="info"><div class="title">${i.name||''}</div><div class="sub">售价:¥${f(i.price)} ${i.note||''}</div></div><div style="display:flex;gap:2px"><button class="btn btn-sm btn-b" onclick="event.stopPropagation();editProduct(${i.id})">编</button><button class="btn btn-sm btn-r" onclick="event.stopPropagation();deleteProduct(${i.id})">删</button></div></div>`).join('');
-    html+='</div>';
-  }
-  list.innerHTML=html;
-}
-async function loadKCBOMs(){
-  const items=await dbg('bom');const prods=await dbg('product');const ings=await dbg('ingredient');
-  const list=document.getElementById('kc-bom-list');
-  if(!items.length){list.innerHTML='<div class="empty">暂无配方，点右下角+添加</div>';return}
-  list.innerHTML=items.map(i=>{const p=prods.find(x=>x.id===i.productId);const ing=ings.find(x=>x.id===i.ingredientId);return`<div class="list-item"><div class="info"><div class="title">${p?p.name:'?'} → ${ing?ing.name:'?'}</div><div class="sub">用量:${i.qty||0}${i.unit||''} ${i.note||''}</div></div><button class="btn btn-sm btn-r" onclick="event.stopPropagation();deleteBOM(${i.id})">删</button></div>`}).join('');
-}
-async function loadProdRecList(){
-  const items=await dbg('prodrec');const list=document.getElementById('kc-prodrec-list');
-  if(!items.length){list.innerHTML='<div class="empty">暂无生产记录</div>';return}
-  list.innerHTML=items.sort((a,b)=>b.date>a.date?1:-1).map(i=>`<div class="list-item"><div class="info"><div class="title">${i.productName||''} ×${i.qty||0}</div><div class="sub">${fd(i.date)} · 预估成本:¥${f(i.estimatedCost)} ${i.note||''}</div></div><button class="btn btn-sm btn-r" onclick="event.stopPropagation();deleteProdRec(${i.id})">删</button></div>`).join('');
-}
-function kcSubTab(t){
-  document.getElementById('kc-ingredient-list').style.display=t==='ingredient'?'block':'none';
-  document.getElementById('kc-product-list').style.display=t==='product'?'block':'none';
-  document.getElementById('kc-bom-list').style.display=t==='bom'?'block':'none';
-  document.getElementById('kc-prodrec-list').style.display=t==='prodrec'?'block':'none';
-  document.getElementById('kc-prodcat-list').style.display=t==='prodcat'?'block':'none';
-  const fab=document.getElementById('kc-fab');fab.style.display='flex';
-  fab.onclick=t==='ingredient'?:()=>openModal('modal-prodcat')=>{document.getElementById('m-ing-id').value='';document.getElementById('modal-kc-ing-title').textContent='新增食材';document.getElementById('m-ing-name').value='';document.getElementById('m-ing-cat').value='';document.getElementById('m-ing-unit').value='';document.getElementById('m-ing-stock').value='';document.getElementById('m-ing-warn').value='';document.getElementById('m-ing-note').value='';openModal('modal-kc-ing')}:t==='product'?()=>{document.getElementById('m-prod-id').value='';document.getElementById('modal-kc-prod-title').textContent='新增产品';document.getElementById('m-prod-name').value='';document.getElementById('m-prod-cat').value='';document.getElementById('m-prod-price').value='';document.getElementById('m-prod-note').value='';openModal('modal-kc-prod')}:t==='bom'?()=>{refreshDrops();openModal('modal-kc-bom')}:()=>openProdRecModal();
-  document.querySelectorAll('#kc-subtabs button').forEach(b=>b.classList.remove('active'));
-  document.querySelectorAll('#kc-subtabs button')[({ingredient:0,product:1,bom:2,prodrec:3,prodcat:4}[t])].classList.add('active');
-  if(t==='ingredient')loadKCIngredients();if(t==='product')loadKCProducts();if(t==='bom'){loadKCBOMs();refreshDrops()}if(t==='prodrec'){loadProdRecList();refreshDrops()}if(t==='prodcat'){loadProdCats()}
-}
-// Ingredient CRUD
-async function editIngredient(id){const i=await db1('ingredient',id);if(i){document.getElementById('m-ing-id').value=i.id;document.getElementById('modal-kc-ing-title').textContent='编辑食材';document.getElementById('m-ing-name').value=i.name||'';document.getElementById('m-ing-cat').value=i.cat||'';document.getElementById('m-ing-unit').value=i.unit||'';document.getElementById('m-ing-stock').value=i.currentStock||'';document.getElementById('m-ing-warn').value=i.warnLevel||'';document.getElementById('m-ing-note').value=i.note||'';openModal('modal-kc-ing')}}
-async function saveIngredient(){
-  const id=document.getElementById('m-ing-id').value;const data={name:document.getElementById('m-ing-name').value.trim(),cat:document.getElementById('m-ing-cat').value.trim(),unit:document.getElementById('m-ing-unit').value.trim(),currentStock:parseFloat(document.getElementById('m-ing-stock').value)||0,warnLevel:parseFloat(document.getElementById('m-ing-warn').value)||0,note:document.getElementById('m-ing-note').value.trim()};
-  if(!data.name){t('请输入食材名称');return}
-  if(id){data.id=parseInt(id);await dbp('ingredient',data)}else{await dba('ingredient',data)}
-  closeModal('modal-kc-ing');loadKCIngredients();t('已保存');
-}
-async function deleteIngredient(id){if(confirm('确认删除？')){await dbd('ingredient',id);loadKCIngredients();t('已删除')}}
-
-// Product Categories
-async function saveProdCat(){
-  const name=document.getElementById('m-prodcat-name').value.trim();
-  if(!name){t('请输入分类名称');return}
-  await dba('prodcat',{name:name,note:document.getElementById('m-prodcat-note').value.trim()});
-  closeModal('modal-prodcat');loadProdCats();t('分类已保存');
-}
-async function loadProdCats(){
-  const items=await dbg('prodcat');const list=document.getElementById('kc-prodcat-list');
-  if(!items.length){list.innerHTML='<div class="empty">暂无分类，点右下角+添加</div>';return}
-  list.innerHTML=items.map(i=>`<div class="list-item"><div class="info"><div class="title">${i.name}</div><div class="sub">${i.note||''}</div></div><button class="btn btn-sm btn-r" onclick="event.stopPropagation();deleteProdCat(${i.id})">删</button></div>`).join('');
-}
-async function deleteProdCat(id){if(confirm('确认删除？')){await dbd('prodcat',id);loadProdCats();t('已删除')}}
-async function refreshProdCatDropdown(){
-  const cats=await dbg('prodcat');
-  const sel=document.getElementById('m-prod-cat');
-  if(sel)sel.innerHTML='<option value="">选择分类</option>'+cats.map(c=>`<option value="${c.name}">${c.name}</option>`).join('');
-}
-
-// Product CRUD
-async function editProduct(id){const i=await db1('product',id);if(i){document.getElementById('m-prod-id').value=i.id;document.getElementById('modal-kc-prod-title').textContent='编辑产品';document.getElementById('m-prod-name').value=i.name||'';document.getElementById('m-prod-cat').value=i.cat||'';document.getElementById('m-prod-price').value=i.price||'';document.getElementById('m-prod-note').value=i.note||'';openModal('modal-kc-prod')}}
-async function saveProduct(){
-  const id=document.getElementById('m-prod-id').value;const data={name:document.getElementById('m-prod-name').value.trim(),cat:document.getElementById('m-prod-cat').value.trim(),price:parseFloat(document.getElementById('m-prod-price').value)||0,note:document.getElementById('m-prod-note').value.trim()};
-  if(!data.name){t('请输入产品名称');return}
-  if(id){data.id=parseInt(id);await dbp('product',data)}else{await dba('product',data)}
-  closeModal('modal-kc-prod');loadKCProducts();t('已保存');
-}
-async function deleteProduct(id){if(confirm('确认删除？')){await dbd('product',id);loadKCProducts();t('已删除')}}
-// BOM
-async function saveBOM(){const data={productId:parseInt(document.getElementById('m-bom-prod').value)||0,ingredientId:parseInt(document.getElementById('m-bom-ing').value)||0,qty:parseFloat(document.getElementById('m-bom-qty').value)||0,unit:document.getElementById('m-bom-unit').value.trim(),note:document.getElementById('m-bom-note').value.trim()};if(!data.productId||!data.ingredientId){t('请选择产品和食材');return}await dba('bom',data);closeModal('modal-kc-bom');loadKCBOMs();t('已保存')}
-async function deleteBOM(id){if(confirm('确认删除？')){await dbd('bom',id);loadKCBOMs();t('已删除')}}
-// Stock IO
-async function stockIO(ingId,type){document.getElementById('m-io-type').value=type;document.getElementById('m-io-ing').value=ingId;document.getElementById('m-io-qty').value='';document.getElementById('m-io-date').value=new Date().toISOString().split('T')[0];document.getElementById('m-io-note').value='';refreshDrops();openModal('modal-stock-io')}
-async function saveStockIO(){
-  const ingId=parseInt(document.getElementById('m-io-ing').value);const type=document.getElementById('m-io-type').value;const qty=parseFloat(document.getElementById('m-io-qty').value)||0;
-  if(!qty){t('请输入数量');return}
-  const ing=await db1('ingredient',ingId);if(ing){ing.currentStock=Math.max(0,(ing.currentStock||0)+(type==='入库'?qty:-qty));await dbp('ingredient',ing)}
-  await dba('stockio',{ingredientId:ingId,type,qty,date:document.getElementById('m-io-date').value,note:document.getElementById('m-io-note').value.trim()});
-  closeModal('modal-stock-io');loadKCIngredients();t(type+'成功');
-}
-// Production Record
-async function openProdRecModal(){document.getElementById('m-prodrec-qty').value='';document.getElementById('m-prodrec-date').value=new Date().toISOString().split('T')[0];document.getElementById('m-prodrec-note').value='';document.getElementById('m-prodrec-preview').innerHTML='';refreshDrops();openModal('modal-prodrec')}
-async function previewProdCost(){
-  const pid=parseInt(document.getElementById('m-prodrec-prod').value);const qty=parseInt(document.getElementById('m-prodrec-qty').value)||0;const preview=document.getElementById('m-prodrec-preview');
-  if(!pid||!qty){preview.innerHTML='';return}
-  const boms=await dbg('bom');const ings=await dbg('ingredient');const prod=await db1('product',pid);
-  const rb=boms.filter(b=>b.productId===pid);if(!rb.length){preview.innerHTML='该产品暂无配方';return}
-  let details=[];rb.forEach(b=>{const ing=ings.find(i=>i.id===b.ingredientId);if(ing)details.push(`${ing.name}:${(b.qty||0)*qty}${b.unit||''}`)});
-  preview.innerHTML='消耗: '+details.join(' · ')+`<br>预计${qty}份${prod?` · 售价¥${prod.price}/份`:' · 成本待核算'}`;
-}
-async function saveProdRec(){
-  const pid=parseInt(document.getElementById('m-prodrec-prod').value)||0;const qty=parseInt(document.getElementById('m-prodrec-qty').value)||0;
-  if(!pid||!qty){t('请选择产品并输入数量');return}
-  const prod=await db1('product',pid);const boms=await dbg('bom');const date=document.getElementById('m-prodrec-date').value;
-  let totalCost=0;
-  for(const b of boms.filter(b=>b.productId===pid)){
-    const ing=await db1('ingredient',b.ingredientId);if(ing){const consume=(b.qty||0)*qty;ing.currentStock=Math.max(0,(ing.currentStock||0)-consume);await dbp('ingredient',ing);await dba('stockio',{ingredientId:b.ingredientId,type:'出库',qty:consume,date,note:'生产'+prod.name+'自动扣减'});totalCost+=consume*5}
-  }
-  await dba('prodrec',{productId:pid,productName:prod?prod.name:'',qty,date,note:document.getElementById('m-prodrec-note').value.trim(),estimatedCost:totalCost});
-  closeModal('modal-prodrec');loadProdRecList();loadKCIngredients();t('已保存，食材已扣减');
-}
-async function deleteProdRec(id){if(confirm('确认删除？已扣减食材不会恢复')){await dbd('prodrec',id);loadProdRecList();t('已删除')}}
-
-// ====== TAB 4: 报表 ======
-async function loadReport(){
-  const month=document.getElementById('bb-month').value||new Date().toISOString().split('T')[0].substring(0,7);
-  const active=document.querySelector('#bb-subtabs button.active');const tab=active?active.textContent:'收支月报';const c=document.getElementById('bb-content');
-  if(tab.includes('收支')){
-    const items=(await dbg('sz')).filter(i=>gm(i.date)===month);let ti=0,to=0;items.forEach(i=>{if(i.type==='收入')ti+=i.amount;else to+=i.amount});
-    const byCat={};items.forEach(i=>{const k=i.cat||'其他';byCat[k]=(byCat[k]||0)+i.amount});
-    c.innerHTML=`<div class="summary"><div><div class="num" style="color:var(--g)">¥${f(ti)}</div><div class="lbl">总收入</div></div><div><div class="num" style="color:var(--r)">¥${f(to)}</div><div class="lbl">总支出</div></div><div><div class="num" style="color:${ti>=to?'var(--g)':'var(--r)'}">¥${f(ti-to)}</div><div class="lbl">盈亏</div></div></div><div class="card"><h3>分类汇总</h3>${Object.entries(byCat).map(([k,v])=>`<div class="list-item"><span>${k}</span><span class="val">¥${f(v)}</span></div>`).join('')||'<div class="empty">无数据</div>'}</div><div class="card"><h3>流水明细</h3>${items.length?items.sort((a,b)=>b.date>a.date?1:-1).map(i=>`<div class="list-item"><div class="info"><div class="title"><span class="badge ${i.type==='收入'?'badge-in':'badge-out'}">${i.type}</span> ${i.cat||''}</div><div class="sub">${i.date} · ${i.person||''} ${i.note||''}</div></div><div class="val ${i.type==='收入'?'in':'out'}">¥${f(i.amount)}</div></div>`).join(''):'<div class="empty">本月无记录</div>'}</div>`;
-  }else if(tab.includes('薪资')){
-    const ygs=await dbg('yg');const leaves=await dbg('leave');const dim=new Date(parseInt(month.split('-')[0]),parseInt(month.split('-')[1]),0).getDate();
-    c.innerHTML='<div class="card"><h3>'+month+' 薪资报表</h3>'+ygs.map(yg=>{const yl=leaves.filter(l=>l.empId===yg.id&&gm(l.startDate)===month);const ld=yl.reduce((s,l)=>s+(l.days||0),0);const ad=dim-ld;const sal=yg.salary/dim*ad;return`<div class="list-item"><div class="info"><div class="title">${yg.name} (${yg.role||''})</div><div class="sub">出勤${ad}天 · 请假${ld}天</div></div><div class="val" style="color:var(--o)">¥${f(sal)}</div></div>`}).join('')+'</div>';
-  }else if(tab.includes('库存')){
-    const items=await dbg('ingredient');const ios=await dbg('stockio');
-    c.innerHTML='<div class="card"><h3>库存台账 ('+month+')</h3>'+items.map(i=>{const mi=ios.filter(io=>io.ingredientId===i.id&&gm(io.date)===month);const iq=mi.filter(io=>io.type==='入库').reduce((s,io)=>s+(io.qty||0),0);const oq=mi.filter(io=>io.type==='出库').reduce((s,io)=>s+(io.qty||0),0);return`<div class="list-item"><div class="info"><div class="title">${i.name}</div><div class="sub">入${iq} · 出${oq} · 库存${i.currentStock||0}${i.unit||''}</div></div><div class="val">${i.currentStock||0}${i.unit||''}</div></div>`}).join('')+'</div>';
-  }
-}
-function bbSubTab(t){const btns=document.querySelectorAll('#bb-subtabs button');btns.forEach(b=>b.classList.remove('active'));btns[{sz:0,salary:1,stock:2}[t]].classList.add('active');loadReport()}
-
-// Budget
-async function setBudget(){const now=new Date().toISOString().split('T')[0].substring(0,7);document.getElementById('m-budget-month').value=now;document.getElementById('m-budget-amt').value='';const bs=await dbg('budget');const ex=bs.find(b=>b.month===now);if(ex)document.getElementById('m-budget-amt').value=ex.amount;openModal('modal-budget')}
-async function saveBudget(){const month=document.getElementById('m-budget-month').value;const amt=parseFloat(document.getElementById('m-budget-amt').value)||0;if(!month||!amt){t('请选择月份和金额');return}const bs=await dbg('budget');const ex=bs.find(b=>b.month===month);if(ex){ex.amount=amt;await dbp('budget',ex)}else{await dba('budget',{month,amount:amt})}closeModal('modal-budget');loadSZList();t('预算已保存')}
-
-// CSV Export
-async function exportCSV(){const data=await dbg('sz');let csv='﻿类型,分类,金额,日期,支付方式,经手人,备注\n';data.forEach(i=>{csv+=`${i.type},${i.cat||''},${i.amount},${i.date||''},${i.pay||''},${i.person||''},${i.note||''}\n`});const b=new Blob([csv],{type:'text/csv'});const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='收支数据_'+new Date().toISOString().split('T')[0]+'.csv';a.click();t('导出成功')}
-
-// ====== LOGIN ======
-const PIN='123456';let loginInput='';
-function renderNumpad(){var p=document.getElementById('loginNumpad');if(!p)return;p.innerHTML='';for(var i=1;i<=9;i++){var b=document.createElement('button');b.textContent=i;b.onclick=(function(n){return function(){loginTap(n)}})(i);p.appendChild(b)}var eb=document.createElement('button');eb.className='empty';eb.disabled=true;p.appendChild(eb);var zb=document.createElement('button');zb.textContent='0';zb.onclick=function(){loginTap(0)};p.appendChild(zb);var db=document.createElement('button');db.className='del';db.textContent='删除';db.onclick=loginDel;p.appendChild(db)}renderNumpad();
-function loginTap(n){if(loginInput.length>=6)return;loginInput+=n;updateDots();if(loginInput.length===6)checkLogin()}
-function loginDel(){loginInput=loginInput.slice(0,-1);updateDots();document.getElementById('loginMsg').textContent=''}
-function updateDots(){document.querySelectorAll('#loginDots .login-dot').forEach((d,i)=>d.classList.toggle('filled',i<loginInput.length))}
-function checkLogin(){if(loginInput===PIN){document.getElementById('loginPage').classList.add('hidden');document.getElementById('loginMsg').textContent='';afterLogin()}else{document.getElementById('loginMsg').textContent='密码错误';setTimeout(()=>{loginInput='';updateDots();document.getElementById('loginMsg').textContent=''},800)}}
-function afterLogin(){sessionStorage.setItem('loggedIn','1');initApp()}
-if(sessionStorage.getItem('loggedIn')==='1'){document.getElementById('loginPage').classList.add('hidden');initApp()}
-
-// ====== INIT ======
-async function initApp(){
-  const now=new Date().toISOString().split('T')[0].substring(0,7);
-  document.getElementById('sz-filter-month').value=now;
-  document.getElementById('bb-month').value=now;
-  document.getElementById('m-sz-date').value=new Date().toISOString().split('T')[0];
-  loadSZList();
-  setInterval(()=>{document.getElementById('clock').textContent=new Date().toLocaleTimeString('zh-CN',{hour12:false})},1000);
-}
-</script>
-</body>
-</html>
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#C41E1E">
+<title>七喜呱呱老火锅（宁武店）v3</title>
+<link rel="manifest" href="manifest.json">
+<!-- service worker disabled -->
+<style>
+:root{--o:#C41E1E;--g:#4caf84;--b:#5b9cf5;--r:#f05b5b;--bg:#f5f5f5;--card:#fff;--t:#333;--d:#999}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg);color:var(--t);padding-bottom:60px;max-width:100vw;overflow-x:hidden;-webkit-tap-highlight-color:transparent}
+header{background:linear-gradient(135deg,#8B0000,#C41E1E);color:#fff;padding:10px 14px;position:sticky;top:0;z-index:10;display:flex;justify-content:space-between;align-items:center}
+header h1{font-size:1rem;font-weight:600}
+nav{position:fixed;bottom:0;left:0;right:0;background:#fff;display:flex;border-top:1px solid #eee;z-index:10;padding-bottom:env(safe-area-inset-bottom)}
+nav button{flex:1;padding:6px 2px;border:none;background:none;color:var(--d);font-size:.62rem;display:flex;flex-direction:column;align-items:center;gap:1px;cursor:pointer;transition:color .2s}
+nav button.active{color:var(--o)}
+nav button .icon{font-size:1.2rem}
+.page{display:none;padding:10px}
+.page.active{display:block}
+.card{background:var(--card);border-radius:10px;padding:12px;margin-bottom:8px;box-shadow:0 1px 3px rgba(0,0,0,.06)}
+.card h3{font-size:.85rem;margin-bottom:6px;color:var(--o)}
+.row{display:flex;gap:6px;flex-wrap:wrap}
+.row>*{flex:1;min-width:60px}
+input,select,textarea{width:100%;padding:7px 8px;border:1px solid #ddd;border-radius:6px;font-size:.82rem;background:#fafafa;margin-bottom:6px}
+input:focus,select:focus{outline:none;border-color:var(--o);background:#fff}
+.btn{display:inline-block;padding:7px 14px;border:none;border-radius:6px;font-size:.78rem;font-weight:600;cursor:pointer;text-align:center;transition:opacity .15s}
+.btn:active{opacity:.7}
+.btn-o{background:var(--o);color:#fff}
+.btn-g{background:var(--g);color:#fff}
+.btn-b{background:var(--b);color:#fff}
+.btn-r{background:var(--r);color:#fff}
+.btn-o1{border:1px solid var(--o);color:var(--o);background:#fff}
+.btn-block{display:block;width:100%}
+.btn-sm{padding:4px 8px;font-size:.68rem}
+.list-item{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid #f0f0f0;font-size:.8rem}
+.list-item:last-child{border-bottom:none}
+.list-item .info{flex:1;min-width:0}
+.list-item .title{font-weight:600;font-size:.82rem}
+.list-item .sub{font-size:.68rem;color:var(--d);margin-top:1px}
+.list-item .val{font-weight:600;text-align:right;min-width:50px;font-size:.85rem}
+.list-item .val.in{color:var(--g)}
+.list-item .val.out{color:var(--r)}
+.badge{display:inline-block;padding:1px 7px;border-radius:10px;font-size:.62rem;font-weight:600}
+.badge-in{background:#4caf8415;color:var(--g)}
+.badge-out{background:#f05b5b15;color:var(--r)}
+.badge-warn{background:#ff6b3515;color:#ff6b35}
+.summary{display:flex;gap:6px;margin-bottom:10px}
+.summary>div{flex:1;background:var(--card);border-radius:8px;padding:8px;text-align:center;box-shadow:0 1px 3px rgba(0,0,0,.06)}
+.summary .num{font-size:1.1rem;font-weight:700}
+.summary .lbl{font-size:.58rem;color:var(--d);margin-top:1px}
+.empty{text-align:center;padding:30px 15px;color:var(--d);font-size:.8rem}
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:100;align-items:flex-end}
+.modal-overlay.show{display:flex}
+.modal{background:#fff;width:100%;border-radius:14px 14px 0 0;padding:14px;max-height:85vh;overflow-y:auto}
+.modal h3{font-size:.9rem;margin-bottom:10px;text-align:center;color:var(--o)}
+.fab{position:fixed;bottom:75px;right:14px;width:44px;height:44px;border-radius:50%;background:var(--o);color:#fff;font-size:1.3rem;border:none;box-shadow:0 3px 10px rgba(196,30,30,.4);cursor:pointer;z-index:5;display:flex;align-items:center;justify-content:center}
+.filter-row{display:flex;gap:6px;align-items:center;margin-bottom:8px}
+.filter-row select,.filter-row input{width:auto;flex:1;margin-bottom:0}
+.tab-row{display:flex;gap:3px;margin-bottom:8px;overflow-x:auto}
+.tab-row button{padding:5px 12px;border:1px solid #ddd;border-radius:14px;background:#fff;font-size:.7rem;white-space:nowrap;cursor:pointer}
+.tab-row button.active{background:var(--o);color:#fff;border-color:var(--o)}
+.toast{position:fixed;top:60px;left:50%;transform:translateX(-50%);background:#333;color:#fff;padding:6px 18px;border-radius:18px;font-size:.75rem;z-index:200;opacity:0;transition:opacity .3s;pointer-events:none}
+.toast.show{opacity:1}
+.login-page{position:fixed;inset:0;z-index:1000;background:url(bg_login.jpg) center/cover no-repeat;display:flex;flex-direction:column;align-items:center;justify-content:center;color:#fff}
+.login-overlay{position:absolute;inset:0;background:linear-gradient(180deg,rgba(139,0,0,.75),rgba(150,30,30,.7),rgba(0,0,0,.5))}
+.login-page.hidden{display:none}
+.login-card{position:relative;z-index:1;background:rgba(0,0,0,.4);backdrop-filter:blur(8px);border-radius:16px;padding:28px 20px;width:calc(100% - 40px);max-width:320px;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,.4);border:1px solid rgba(255,255,255,.1)}
+.login-emoji{font-size:3rem;margin-bottom:6px}
+.login-card h2{font-size:1.2rem;margin-bottom:2px;font-weight:700}
+.login-card .sub{font-size:.65rem;color:rgba(255,255,255,.55);margin-bottom:16px}
+.login-dots{display:flex;justify-content:center;gap:10px;margin-bottom:16px}
+.login-dot{width:12px;height:12px;border-radius:50%;border:2px solid rgba(255,255,255,.4);transition:all .2s}
+.login-dot.filled{background:#FFD700;border-color:#FFD700;box-shadow:0 0 10px rgba(255,215,0,.4)}
+.login-numpad{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:10px}
+.login-numpad button{aspect-ratio:1.2;border-radius:50%;border:1px solid rgba(255,255,255,.2);background:rgba(255,255,255,.08);color:#fff;font-size:1.2rem;font-weight:600;cursor:pointer;transition:all .15s}
+.login-numpad button:active{background:rgba(255,255,255,.25);transform:scale(.95)}
+.login-numpad .del{font-size:.7rem}
+.login-numpad .empty{background:transparent;border:none;pointer-events:none}
+.login-msg{font-size:.65rem;color:#FFD700;min-height:18px}
+</style>
+</head>
+<body>
+
+<header><h1>🍲 七喜呱呱老火锅（宁武店）</h1><span id="clock" style="font-size:.7rem"></span></header>
+
+<nav>
+<button class="active" onclick="switchTab('sz')"><span class="icon">💰</span>收支</button>
+<button onclick="switchTab('yg')"><span class="icon">👥</span>员工</button>
+<button onclick="switchTab('kc')"><span class="icon">🥩</span>库存</button>
+<button onclick="switchTab('bb')"><span class="icon">📊</span>报表</button>
+</nav>
+
+<div class="toast" id="toast"></div>
+
+<!-- LOGIN -->
+<div class="login-page" id="loginPage">
+  <div class="login-overlay"></div>
+  <div class="login-card">
+    <div class="login-emoji">🍲</div>
+    <h2>七喜呱呱老火锅</h2>
+    <div class="sub">宁武店 · 请输入密码</div>
+    <div class="login-dots" id="loginDots"><div class="login-dot"></div><div class="login-dot"></div><div class="login-dot"></div><div class="login-dot"></div><div class="login-dot"></div><div class="login-dot"></div></div>
+    <div class="login-numpad">
+      <button onclick="loginTap(1)">1</button><button onclick="loginTap(2)">2</button><button onclick="loginTap(3)">3</button>
+      <button onclick="loginTap(4)">4</button><button onclick="loginTap(5)">5</button><button onclick="loginTap(6)">6</button>
+      <button onclick="loginTap(7)">7</button><button onclick="loginTap(8)">8</button><button onclick="loginTap(9)">9</button>
+      <span></span><button onclick="loginTap(0)">0</button><button class="del" onclick="loginDel()">删除</button>
+    </div>
+    <div class="login-msg" id="loginMsg"></div>
+  </div>
+</div>
+
+<!-- TAB 1: 收支 -->
+<div class="page active" id="tab-sz">
+  <div class="summary">
+    <div><div class="num" style="color:var(--g)" id="sz-in">0</div><div class="lbl">月收入</div></div>
+    <div><div class="num" style="color:var(--r)" id="sz-out">0</div><div class="lbl">月支出</div></div>
+    <div><div class="num" id="sz-bal">0</div><div class="lbl">收支差</div></div>
+  </div>
+  <div id="sz-budget-bar" style="margin-bottom:8px;font-size:.7rem;color:var(--d);text-align:center;cursor:pointer" onclick="setBudget()">月预算：未设置（点击设置）</div>
+  <div class="filter-row">
+    <input id="sz-search" placeholder="🔍 搜索" oninput="loadSZList()" style="flex:2">
+    <select id="sz-filter-type" onchange="loadSZList()"><option value="">全部</option><option value="收入">收入</option><option value="支出">支出</option></select>
+    <input type="month" id="sz-filter-month" onchange="loadSZList()">
+  </div>
+  <div id="sz-list"></div>
+  <button class="fab" onclick="openSZModal()">+</button>
+</div>
+
+<!-- TAB 2: 员工 -->
+<div class="page" id="tab-yg">
+  <div class="tab-row" id="yg-subtabs">
+    <button class="active" onclick="ygSubTab('info')">员工信息</button>
+    <button onclick="ygSubTab('leave')">请假登记</button>
+    <button onclick="ygSubTab('attend')">月考勤</button>
+  </div>
+  <div id="yg-info-list"></div>
+  <div id="yg-leave-list" style="display:none"></div>
+  <div id="yg-attend-list" style="display:none"></div>
+  <button class="fab" id="yg-fab" onclick="openYGModal()">+</button>
+</div>
+
+<!-- TAB 3: 库存 -->
+<div class="page" id="tab-kc">
+  <div class="tab-row" id="kc-subtabs">
+    <button class="active" onclick="kcSubTab('ingredient')">食材清单</button>
+    <button onclick="kcSubTab('product')">产品管理</button>
+    <button onclick="kcSubTab('prodcat')">产品分类</button>
+    <button onclick="kcSubTab('bom')">配方BOM</button>
+    <button onclick="kcSubTab('prodrec')">生产记录</button>
+  </div>
+  <div id="kc-alert-bar" style="display:none;background:#f05b5b10;border:1px solid #f05b5b30;border-radius:8px;padding:6px 10px;margin-bottom:8px;color:var(--r);font-size:.7rem"></div>
+  <div id="kc-ingredient-list"></div>
+  <div id="kc-product-list" style="display:none"></div>
+  <div id="kc-prodcat-list" style="display:none"></div>
+  <div id="kc-bom-list" style="display:none"></div>
+  <div id="kc-prodrec-list" style="display:none"></div>
+  <button class="fab" id="kc-fab" onclick="openModal('modal-kc-ing')">+</button>
+</div>
+
+<!-- TAB 4: 报表 -->
+<div class="page" id="tab-bb">
+  <div class="tab-row" id="bb-subtabs">
+    <button class="active" onclick="bbSubTab('sz')">收支月报</button>
+    <button onclick="bbSubTab('salary')">薪资报表</button>
+    <button onclick="bbSubTab('stock')">库存台账</button>
+  </div>
+  <div class="filter-row"><input type="month" id="bb-month" onchange="loadReport()"><button class="btn btn-sm btn-b" onclick="exportCSV()">导出CSV</button></div>
+  <div id="bb-content"></div>
+</div>
+
+<!-- MODALS -->
+<div class="modal-overlay" id="modal-sz"><div class="modal">
+  <h3 id="modal-sz-title">新增收支</h3>
+  <select id="m-sz-type" onchange="updateSZCat()"><option value="">选择类型</option><option value="收入">收入</option><option value="支出">支出</option></select>
+  <select id="m-sz-cat"><option value="">请先选择类型</option></select>
+  <input type="number" id="m-sz-amt" placeholder="金额（元）" step="0.01">
+  <input type="date" id="m-sz-date">
+  <select id="m-sz-pay"><option value="">支付方式</option><option value="微信">微信</option><option value="支付宝">支付宝</option><option value="现金">现金</option><option value="银行卡">银行卡</option></select>
+  <input id="m-sz-person" placeholder="经手人">
+  <input id="m-sz-note" placeholder="备注">
+  <div class="row"><button class="btn btn-o btn-block" onclick="saveSZ()">保存</button><button class="btn btn-o1 btn-block" onclick="closeModal('modal-sz')">取消</button></div>
+  <input type="hidden" id="m-sz-id">
+</div></div>
+
+<div class="modal-overlay" id="modal-yg"><div class="modal">
+  <h3 id="modal-yg-title">新增员工</h3>
+  <input id="m-yg-name" placeholder="员工姓名">
+  <input id="m-yg-role" placeholder="岗位（厨师/服务员/收银员/店长）">
+  <input type="number" id="m-yg-salary" placeholder="月基础工资（元）" step="0.01">
+  <input type="date" id="m-yg-join">
+  <input id="m-yg-health" placeholder="健康证办理情况">
+  <input id="m-yg-note" placeholder="备注">
+  <div class="row"><button class="btn btn-o btn-block" onclick="saveYG()">保存</button><button class="btn btn-o1 btn-block" onclick="closeModal('modal-yg')">取消</button></div>
+  <input type="hidden" id="m-yg-id">
+</div></div>
+
+<div class="modal-overlay" id="modal-leave"><div class="modal">
+  <h3>请假登记</h3>
+  <select id="m-leave-emp"></select>
+  <select id="m-leave-type"><option value="">请假类型</option><option value="事假">事假</option><option value="病假">病假</option><option value="年假">年假</option><option value="调休">调休</option></select>
+  <input type="date" id="m-leave-start">
+  <input type="date" id="m-leave-end">
+  <input type="number" id="m-leave-days" placeholder="请假天数" step="0.5">
+  <div class="row"><button class="btn btn-o btn-block" onclick="saveLeave()">保存</button><button class="btn btn-o1 btn-block" onclick="closeModal('modal-leave')">取消</button></div>
+</div></div>
+
+<div class="modal-overlay" id="modal-kc-ing"><div class="modal">
+  <h3 id="modal-kc-ing-title">食材信息</h3>
+  <input id="m-ing-name" placeholder="食材名称（如：牛肉卷）">
+  <input id="m-ing-cat" placeholder="分类（肉类/蔬菜/调料/饮品）">
+  <input id="m-ing-unit" placeholder="单位（斤/袋/瓶/箱）">
+  <input type="number" id="m-ing-stock" placeholder="当前库存数量" step="0.01">
+  <input type="number" id="m-ing-warn" placeholder="安全预警阈值" step="0.01">
+  <input id="m-ing-note" placeholder="备注">
+  <div class="row"><button class="btn btn-o btn-block" onclick="saveIngredient()">保存</button><button class="btn btn-o1 btn-block" onclick="closeModal('modal-kc-ing')">取消</button></div>
+  <input type="hidden" id="m-ing-id">
+</div></div>
+
+<div class="modal-overlay" id="modal-kc-prod"><div class="modal">
+  <h3 id="modal-kc-prod-title">产品信息</h3>
+  <input id="m-prod-name" placeholder="产品名称（如：招牌麻辣锅底）">
+  <select id="m-prod-cat"><option value="">选择分类</option></select>
+  <input type="number" id="m-prod-price" placeholder="售价（元）" step="0.01">
+  <input id="m-prod-note" placeholder="备注">
+  <div class="row"><button class="btn btn-o btn-block" onclick="saveProduct()">保存</button><button class="btn btn-o1 btn-block" onclick="closeModal('modal-kc-prod')">取消</button></div>
+  <input type="hidden" id="m-prod-id">
+</div></div>
+
+<div class="modal-overlay" id="modal-kc-bom"><div class="modal">
+  <h3>BOM配方</h3>
+  <select id="m-bom-prod"></select>
+  <select id="m-bom-ing"></select>
+  <input type="number" id="m-bom-qty" placeholder="用量" step="0.001">
+  <input id="m-bom-unit" placeholder="用量单位（克/毫升/个）">
+  <input id="m-bom-note" placeholder="备注">
+  <div class="row"><button class="btn btn-o btn-block" onclick="saveBOM()">保存</button><button class="btn btn-o1 btn-block" onclick="closeModal('modal-kc-bom')">取消</button></div>
+</div></div>
+
+<div class="modal-overlay" id="modal-prodrec"><div class="modal">
+  <h3>产品生产记录</h3>
+  <select id="m-prodrec-prod" onchange="previewProdCost()"></select>
+  <input type="number" id="m-prodrec-qty" placeholder="生产数量" step="1" oninput="previewProdCost()">
+  <input type="date" id="m-prodrec-date">
+  <div id="m-prodrec-preview" style="background:#f5f5f5;border-radius:6px;padding:6px 8px;margin:6px 0;font-size:.7rem;color:var(--d);min-height:20px"></div>
+  <input id="m-prodrec-note" placeholder="备注">
+  <div class="row"><button class="btn btn-o btn-block" onclick="saveProdRec()">保存并扣减库存</button><button class="btn btn-o1 btn-block" onclick="closeModal('modal-prodrec')">取消</button></div>
+</div></div>
+
+<div class="modal-overlay" id="modal-stock-io"><div class="modal">
+  <h3>出入库</h3>
+  <select id="m-io-type"><option value="入库">入库</option><option value="出库">出库</option></select>
+  <select id="m-io-ing"></select>
+  <input type="number" id="m-io-qty" placeholder="数量" step="0.01">
+  <input type="date" id="m-io-date">
+  <input id="m-io-note" placeholder="备注">
+  <div class="row"><button class="btn btn-o btn-block" onclick="saveStockIO()">保存</button><button class="btn btn-o1 btn-block" onclick="closeModal('modal-stock-io')">取消</button></div>
+</div></div>
+
+<div class="modal-overlay" id="modal-prodcat"><div class="modal">
+  <h3>添加产品分类</h3>
+  <input id="m-prodcat-name" placeholder="分类名称（如：锅底、荤菜、素菜）">
+  <input id="m-prodcat-note" placeholder="备注">
+  <div class="row"><button class="btn btn-o btn-block" onclick="saveProdCat()">保存</button><button class="btn btn-o1 btn-block" onclick="closeModal('modal-prodcat')">取消</button></div>
+</div></div>
+
+<div class="modal-overlay" id="modal-budget"><div class="modal">
+  <h3>设置月预算</h3>
+  <input type="month" id="m-budget-month">
+  <input type="number" id="m-budget-amt" placeholder="预算金额（元）" step="0.01">
+  <div class="row"><button class="btn btn-o btn-block" onclick="saveBudget()">保存</button><button class="btn btn-o1 btn-block" onclick="closeModal('modal-budget')">取消</button></div>
+</div></div>
+
+<script>
+// ====== DATABASE (Supabase) ======
+const SB_URL='https://dzmyonfsztrpvuicgtjm.supabase.co/rest/v1';
+const SB_KEY='sb_publishable_oLSyHseKehgHTc6W_qB8XA_wVBvwGPv';
+const SB_HEADERS={'apikey':SB_KEY,'Authorization':'Bearer '+SB_KEY,'Content-Type':'application/json'};
+async function odb(){return true} // no-op for Supabase
+async function dba(s,d){const r=await fetch(SB_URL+'/'+s,{method:'POST',headers:{...SB_HEADERS,'Prefer':'return=representation'},body:JSON.stringify(d)});const j=await r.json();return Array.isArray(j)?j[0]?.id:j?.id}
+async function dbp(s,d){const id=d.id;delete d.id;await fetch(SB_URL+'/'+s+'?id=eq.'+id,{method:'PATCH',headers:{...SB_HEADERS,'Prefer':'return=representation'},body:JSON.stringify(d)});return id}
+async function dbg(s){const r=await fetch(SB_URL+'/'+s+'?select=*&order=id.desc',{headers:SB_HEADERS});return await r.json()}
+async function db1(s,i){const r=await fetch(SB_URL+'/'+s+'?id=eq.'+i+'&select=*',{headers:SB_HEADERS});const j=await r.json();return j?.[0]}
+async function dbd(s,i){await fetch(SB_URL+'/'+s+'?id=eq.'+i,{method:'DELETE',headers:SB_HEADERS})}
+
+// ====== UI HELPERS ======
+function t(m){const e=document.getElementById('toast');e.textContent=m;e.classList.add('show');setTimeout(()=>e.classList.remove('show'),1800)}
+function f(n){return n==null||isNaN(n)?'0.00':Number(n).toFixed(2)}
+function fd(d){if(!d)return'';return new Date(d).toLocaleDateString('zh-CN')}
+function gm(d){return d?d.substring(0,7):''}
+function closeModal(id){document.getElementById(id).classList.remove('show')}
+function openModal(id){document.getElementById(id).classList.add('show')}
+
+// ====== TABS ======
+function switchTab(t){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.getElementById('tab-'+t).classList.add('active');
+  document.querySelectorAll('nav button').forEach((b,i)=>{b.classList.toggle('active',{sz:0,yg:1,kc:2,bb:3}[t]===i)});
+  if(t==='sz')loadSZList();
+  if(t==='yg'){loadYGList();document.querySelectorAll('#yg-subtabs button')[0].click()}
+  if(t==='kc'){loadKCIngredients();document.querySelectorAll('#kc-subtabs button')[0].click()}
+  if(t==='bb'){document.querySelectorAll('#bb-subtabs button')[0].click();loadReport()}
+}
+
+// ====== TAB 1: 收支 ======
+async function loadSZList(){
+  const data=await dbg('sz');
+  const type=document.getElementById('sz-filter-type').value;
+  const month=document.getElementById('sz-filter-month').value;
+  const search=(document.getElementById('sz-search').value||'').toLowerCase();
+  let items=data.sort((a,b)=>b.date>a.date?1:-1);
+  if(type)items=items.filter(i=>i.type===type);
+  if(month)items=items.filter(i=>gm(i.date)===month);
+  if(search)items=items.filter(i=>(i.cat||'').includes(search)||(i.note||'').includes(search)||(i.person||'').includes(search));
+  let ti=0,to=0;items.forEach(i=>{if(i.type==='收入')ti+=i.amount;else to+=i.amount});
+  document.getElementById('sz-in').textContent=f(ti);
+  document.getElementById('sz-out').textContent=f(to);
+  document.getElementById('sz-bal').textContent=f(ti-to);
+  document.getElementById('sz-bal').style.color=ti>=to?'var(--g)':'var(--r)';
+  // Budget
+  const bs=await dbg('budget');const b=bs.find(x=>x.month===month);
+  const be=document.getElementById('sz-budget-bar');
+  if(b)be.innerHTML=`月预算: ¥${f(b.amount)} | 已用: ¥${f(to)} | ${to>b.amount?'<span style="color:var(--r)">超支 ¥'+f(to-b.amount)+'</span>':'<span style="color:var(--g)">剩余 ¥'+f(b.amount-to)+'</span>'}`;
+  else be.innerHTML='月预算：未设置（点击设置）';
+  const list=document.getElementById('sz-list');
+  if(!items.length){list.innerHTML='<div class="empty">暂无收支记录，点右下角+添加</div>';return}
+  list.innerHTML=items.map(i=>`<div class="list-item" onclick="editSZ(${i.id})"><div class="info"><div class="title"><span class="badge ${i.type==='收入'?'badge-in':'badge-out'}">${i.type}</span> ${i.cat||''}</div><div class="sub">${fd(i.date)}${i.pay?' · '+i.pay:''} · ${i.person||''} ${i.note||''}</div></div><div class="val ${i.type==='收入'?'in':'out'}">${i.type==='收入'?'+':'-'}¥${f(i.amount)}</div></div>`).join('');
+}
+function updateSZCat(){
+  const type=document.getElementById('m-sz-type').value;
+  const cats=type==='收入'?['营业收入','其他收入']:type==='支出'?['食材采购','设备维修','水电费','工资支出','房租','其他支出']:[];
+  document.getElementById('m-sz-cat').innerHTML=cats.length?cats.map(c=>`<option value="${c}">${c}</option>`).join(''):'<option value="">请先选择类型</option>';
+}
+async function openSZModal(id){
+  document.getElementById('m-sz-id').value='';document.getElementById('modal-sz-title').textContent='新增收支';
+  document.getElementById('m-sz-type').value='';updateSZCat();
+  document.getElementById('m-sz-amt').value='';document.getElementById('m-sz-date').value=new Date().toISOString().split('T')[0];
+  document.getElementById('m-sz-pay').value='';document.getElementById('m-sz-person').value='';document.getElementById('m-sz-note').value='';
+  if(id){document.getElementById('modal-sz-title').textContent='编辑收支';const i=await db1('sz',id);if(i){document.getElementById('m-sz-id').value=i.id;document.getElementById('m-sz-type').value=i.type||'';updateSZCat();document.getElementById('m-sz-cat').value=i.cat||'';document.getElementById('m-sz-amt').value=i.amount||'';document.getElementById('m-sz-date').value=i.date||'';document.getElementById('m-sz-pay').value=i.pay||'';document.getElementById('m-sz-person').value=i.person||'';document.getElementById('m-sz-note').value=i.note||''}}
+  openModal('modal-sz');
+}
+async function saveSZ(){
+  const id=document.getElementById('m-sz-id').value;
+  const data={type:document.getElementById('m-sz-type').value,cat:document.getElementById('m-sz-cat').value,amount:parseFloat(document.getElementById('m-sz-amt').value)||0,date:document.getElementById('m-sz-date').value,pay:document.getElementById('m-sz-pay').value,person:document.getElementById('m-sz-person').value.trim(),note:document.getElementById('m-sz-note').value.trim()};
+  if(!data.type||!data.amount){t('请填写类型和金额');return}
+  if(id){data.id=parseInt(id);await dbp('sz',data)}else{await dba('sz',data)}
+  closeModal('modal-sz');loadSZList();t('已保存');
+}
+async function editSZ(id){openSZModal(id)}
+async function deleteSZ(id){if(confirm('确认删除？')){await dbd('sz',id);loadSZList();t('已删除')}}
+
+// ====== TAB 2: 员工 ======
+async function loadYGList(){
+  const data=await dbg('yg');const list=document.getElementById('yg-info-list');
+  if(!data.length){list.innerHTML='<div class="empty">暂无员工，点右下角+添加</div>';return}
+  list.innerHTML=data.map(i=>`<div class="list-item"><div class="info"><div class="title">${i.name||''} <span style="font-size:.65rem;color:var(--d)">${i.role||''}</span></div><div class="sub">月薪:¥${f(i.salary)} · 入职:${fd(i.joinDate)} · 健康证:${i.health||'--'}</div></div><div style="display:flex;gap:3px"><button class="btn btn-sm btn-b" onclick="event.stopPropagation();editYG(${i.id})">编</button><button class="btn btn-sm btn-r" onclick="event.stopPropagation();deleteYG(${i.id})">删</button></div></div>`).join('');
+}
+async function openYGModal(id){
+  document.getElementById('m-yg-id').value='';document.getElementById('modal-yg-title').textContent='新增员工';
+  document.getElementById('m-yg-name').value='';document.getElementById('m-yg-role').value='';document.getElementById('m-yg-salary').value='';document.getElementById('m-yg-join').value='';document.getElementById('m-yg-health').value='';document.getElementById('m-yg-note').value='';
+  if(id){document.getElementById('modal-yg-title').textContent='编辑员工';const i=await db1('yg',id);if(i){document.getElementById('m-yg-id').value=i.id;document.getElementById('m-yg-name').value=i.name||'';document.getElementById('m-yg-role').value=i.role||'';document.getElementById('m-yg-salary').value=i.salary||'';document.getElementById('m-yg-join').value=i.joinDate||'';document.getElementById('m-yg-health').value=i.health||'';document.getElementById('m-yg-note').value=i.note||''}}
+  openModal('modal-yg');
+}
+async function saveYG(){
+  const id=document.getElementById('m-yg-id').value;
+  const data={name:document.getElementById('m-yg-name').value.trim(),role:document.getElementById('m-yg-role').value.trim(),salary:parseFloat(document.getElementById('m-yg-salary').value)||0,joinDate:document.getElementById('m-yg-join').value,health:document.getElementById('m-yg-health').value.trim(),note:document.getElementById('m-yg-note').value.trim()};
+  if(!data.name){t('请输入员工姓名');return}
+  if(id){data.id=parseInt(id);await dbp('yg',data)}else{await dba('yg',data)}
+  closeModal('modal-yg');loadYGList();refreshDrops();t('已保存');
+}
+async function editYG(id){openYGModal(id)}
+async function deleteYG(id){if(confirm('确认删除？')){await dbd('yg',id);loadYGList();t('已删除')}}
+
+async function refreshDrops(){
+  const yg=await dbg('yg');const prod=await dbg('product');const ing=await dbg('ingredient');
+  document.getElementById('m-leave-emp').innerHTML='<option value="">选择员工</option>'+yg.map(e=>`<option value="${e.id}">${e.name}</option>`).join('');
+  document.getElementById('m-bom-prod').innerHTML='<option value="">选择产品</option>'+prod.map(e=>`<option value="${e.id}">${e.name}</option>`).join('');
+  refreshProdCatDropdown();document.getElementById('m-bom-ing').innerHTML='<option value="">选择食材</option>'+ing.map(e=>`<option value="${e.id}">${e.name}</option>`).join('');
+  document.getElementById('m-io-ing').innerHTML='<option value="">选择食材</option>'+ing.map(e=>`<option value="${e.id}">${e.name}</option>`).join('');
+  document.getElementById('m-prodrec-prod').innerHTML='<option value="">选择产品</option>'+prod.map(e=>`<option value="${e.id}">${e.name}</option>`).join('');
+}
+async function saveLeave(){
+  const eid=parseInt(document.getElementById('m-leave-emp').value)||0;
+  const emp=await db1('yg',eid);
+  const data={empId:eid,empName:emp?emp.name:'',type:document.getElementById('m-leave-type').value,startDate:document.getElementById('m-leave-start').value,endDate:document.getElementById('m-leave-end').value,days:parseFloat(document.getElementById('m-leave-days').value)||0};
+  if(!data.empId||!data.type){t('请选择员工和类型');return}
+  await dba('leave',data);closeModal('modal-leave');loadLeaveList();loadAttendList();t('已保存');
+}
+async function loadLeaveList(){
+  const data=await dbg('leave');const list=document.getElementById('yg-leave-list');
+  if(!data.length){list.innerHTML='<div class="empty">暂无请假记录</div>';return}
+  list.innerHTML=data.sort((a,b)=>b.startDate>a.startDate?1:-1).map(i=>`<div class="list-item"><div class="info"><div class="title">${i.empName||''}</div><div class="sub">${i.type||''} · ${fd(i.startDate)}~${fd(i.endDate)} · ${i.days||0}天</div></div><button class="btn btn-sm btn-r" onclick="event.stopPropagation();deleteLeave(${i.id})">删</button></div>`).join('');
+}
+async function deleteLeave(id){if(confirm('确认删除？')){await dbd('leave',id);loadLeaveList();loadAttendList();t('已删除')}}
+async function loadAttendList(){
+  const ygs=await dbg('yg');const leaves=await dbg('leave');
+  const now=new Date();const ym=now.getFullYear()+'-'+String(now.getMonth()+1).padStart(2,'0');
+  const dim=new Date(now.getFullYear(),now.getMonth()+1,0).getDate();
+  const list=document.getElementById('yg-attend-list');
+  if(!ygs.length){list.innerHTML='<div class="empty">请先添加员工</div>';return}
+  list.innerHTML='<div class="card"><h3>'+ym+' 月考勤</h3>'+ygs.map(yg=>{const yl=leaves.filter(l=>l.empId===yg.id&&gm(l.startDate)===ym);const ld=yl.reduce((s,l)=>s+(l.days||0),0);const ad=dim-ld;const ds=yg.salary/dim;const ts=ds*ad;return`<div class="list-item"><div class="info"><div class="title">${yg.name} (${yg.role||''})</div><div class="sub">应出勤${dim}天 · 请假${ld}天 · 实到${ad}天 · 日薪¥${f(ds)}</div></div><div class="val" style="color:var(--o)">¥${f(ts)}</div></div>`}).join('')+'</div>';
+}
+function ygSubTab(t){
+  document.getElementById('yg-info-list').style.display=t==='info'?'block':'none';
+  document.getElementById('yg-leave-list').style.display=t==='leave'?'block':'none';
+  document.getElementById('yg-attend-list').style.display=t==='attend'?'block':'none';
+  document.getElementById('yg-fab').style.display=t==='attend'?'none':'flex';
+  document.getElementById('yg-fab').onclick=t==='info'?()=>openYGModal():()=>openModal('modal-leave');
+  const btns=document.querySelectorAll('#yg-subtabs button');btns.forEach(b=>b.classList.remove('active'));
+  btns[{info:0,leave:1,attend:2}[t]].classList.add('active');
+  if(t==='info')loadYGList();if(t==='leave'){loadLeaveList();refreshDrops()}if(t==='attend')loadAttendList();
+}
+
+// ====== TAB 3: 库存 ======
+async function loadKCIngredients(){
+  const items=await dbg('ingredient');const list=document.getElementById('kc-ingredient-list');
+  const alertDiv=document.getElementById('kc-alert-bar');
+  const low=items.filter(i=>i.currentStock!=null&&i.warnLevel!=null&&i.currentStock<=i.warnLevel);
+  alertDiv.style.display=low.length?'block':'none';
+  if(low.length)alertDiv.innerHTML='⚠️ 低库存预警：'+low.map(i=>i.name).join('、');
+  if(!items.length){list.innerHTML='<div class="empty">暂无食材，点右下角+添加</div>';return}
+  list.innerHTML=items.map(i=>{const isLow=i.currentStock!=null&&i.warnLevel!=null&&i.currentStock<=i.warnLevel;return`<div class="list-item" style="${isLow?'background:#f05b5b06':''}"><div class="info"><div class="title">${i.name||''} ${isLow?'<span class="badge badge-warn">低库存</span>':''}</div><div class="sub">${i.cat||''} · 库存:${i.currentStock||0}${i.unit||''} · 预警线:${i.warnLevel||0}${i.unit||''} ${i.note||''}</div></div><div style="display:flex;gap:2px"><button class="btn btn-sm btn-g" onclick="event.stopPropagation();stockIO(${i.id},'入库')">入</button><button class="btn btn-sm btn-r" onclick="event.stopPropagation();stockIO(${i.id},'出库')">出</button><button class="btn btn-sm btn-b" onclick="event.stopPropagation();editIngredient(${i.id})">编</button><button class="btn btn-sm btn-r" onclick="event.stopPropagation();deleteIngredient(${i.id})">删</button></div></div>`}).join('');
+}
+async function loadKCProducts(){
+  const items=await dbg('product');const list=document.getElementById('kc-product-list');
+  if(!items.length){list.innerHTML='<div class="empty">暂无产品，点右下角+添加</div>';return}
+  // Group by category
+  const groups={};items.forEach(i=>{const k=i.cat||'未分类';if(!groups[k])groups[k]=[];groups[k].push(i)});
+  let html='';
+  for(const [cat,prods] of Object.entries(groups)){
+    html+=`<div class="card"><h3>${cat} (${prods.length})</h3>`;
+    html+=prods.map(i=>`<div class="list-item"><div class="info"><div class="title">${i.name||''}</div><div class="sub">售价:¥${f(i.price)} ${i.note||''}</div></div><div style="display:flex;gap:2px"><button class="btn btn-sm btn-b" onclick="event.stopPropagation();editProduct(${i.id})">编</button><button class="btn btn-sm btn-r" onclick="event.stopPropagation();deleteProduct(${i.id})">删</button></div></div>`).join('');
+    html+='</div>';
+  }
+  list.innerHTML=html;
+}
+async function loadKCBOMs(){
+  const items=await dbg('bom');const prods=await dbg('product');const ings=await dbg('ingredient');
+  const list=document.getElementById('kc-bom-list');
+  if(!items.length){list.innerHTML='<div class="empty">暂无配方，点右下角+添加</div>';return}
+  list.innerHTML=items.map(i=>{const p=prods.find(x=>x.id===i.productId);const ing=ings.find(x=>x.id===i.ingredientId);return`<div class="list-item"><div class="info"><div class="title">${p?p.name:'?'} → ${ing?ing.name:'?'}</div><div class="sub">用量:${i.qty||0}${i.unit||''} ${i.note||''}</div></div><button class="btn btn-sm btn-r" onclick="event.stopPropagation();deleteBOM(${i.id})">删</button></div>`}).join('');
+}
+async function loadProdRecList(){
+  const items=await dbg('prodrec');const list=document.getElementById('kc-prodrec-list');
+  if(!items.length){list.innerHTML='<div class="empty">暂无生产记录</div>';return}
+  list.innerHTML=items.sort((a,b)=>b.date>a.date?1:-1).map(i=>`<div class="list-item"><div class="info"><div class="title">${i.productName||''} ×${i.qty||0}</div><div class="sub">${fd(i.date)} · 预估成本:¥${f(i.estimatedCost)} ${i.note||''}</div></div><button class="btn btn-sm btn-r" onclick="event.stopPropagation();deleteProdRec(${i.id})">删</button></div>`).join('');
+}
+function kcSubTab(t){
+  document.getElementById('kc-ingredient-list').style.display=t==='ingredient'?'block':'none';
+  document.getElementById('kc-product-list').style.display=t==='product'?'block':'none';
+  document.getElementById('kc-bom-list').style.display=t==='bom'?'block':'none';
+  document.getElementById('kc-prodrec-list').style.display=t==='prodrec'?'block':'none';
+  document.getElementById('kc-prodcat-list').style.display=t==='prodcat'?'block':'none';
+  const fab=document.getElementById('kc-fab');fab.style.display='flex';
+  fab.onclick=t==='ingredient'?:()=>openModal('modal-prodcat')=>{document.getElementById('m-ing-id').value='';document.getElementById('modal-kc-ing-title').textContent='新增食材';document.getElementById('m-ing-name').value='';document.getElementById('m-ing-cat').value='';document.getElementById('m-ing-unit').value='';document.getElementById('m-ing-stock').value='';document.getElementById('m-ing-warn').value='';document.getElementById('m-ing-note').value='';openModal('modal-kc-ing')}:t==='product'?()=>{document.getElementById('m-prod-id').value='';document.getElementById('modal-kc-prod-title').textContent='新增产品';document.getElementById('m-prod-name').value='';document.getElementById('m-prod-cat').value='';document.getElementById('m-prod-price').value='';document.getElementById('m-prod-note').value='';openModal('modal-kc-prod')}:t==='bom'?()=>{refreshDrops();openModal('modal-kc-bom')}:()=>openProdRecModal();
+  document.querySelectorAll('#kc-subtabs button').forEach(b=>b.classList.remove('active'));
+  document.querySelectorAll('#kc-subtabs button')[({ingredient:0,product:1,bom:2,prodrec:3,prodcat:4}[t])].classList.add('active');
+  if(t==='ingredient')loadKCIngredients();if(t==='product')loadKCProducts();if(t==='bom'){loadKCBOMs();refreshDrops()}if(t==='prodrec'){loadProdRecList();refreshDrops()}if(t==='prodcat'){loadProdCats()}
+}
+// Ingredient CRUD
+async function editIngredient(id){const i=await db1('ingredient',id);if(i){document.getElementById('m-ing-id').value=i.id;document.getElementById('modal-kc-ing-title').textContent='编辑食材';document.getElementById('m-ing-name').value=i.name||'';document.getElementById('m-ing-cat').value=i.cat||'';document.getElementById('m-ing-unit').value=i.unit||'';document.getElementById('m-ing-stock').value=i.currentStock||'';document.getElementById('m-ing-warn').value=i.warnLevel||'';document.getElementById('m-ing-note').value=i.note||'';openModal('modal-kc-ing')}}
+async function saveIngredient(){
+  const id=document.getElementById('m-ing-id').value;const data={name:document.getElementById('m-ing-name').value.trim(),cat:document.getElementById('m-ing-cat').value.trim(),unit:document.getElementById('m-ing-unit').value.trim(),currentStock:parseFloat(document.getElementById('m-ing-stock').value)||0,warnLevel:parseFloat(document.getElementById('m-ing-warn').value)||0,note:document.getElementById('m-ing-note').value.trim()};
+  if(!data.name){t('请输入食材名称');return}
+  if(id){data.id=parseInt(id);await dbp('ingredient',data)}else{await dba('ingredient',data)}
+  closeModal('modal-kc-ing');loadKCIngredients();t('已保存');
+}
+async function deleteIngredient(id){if(confirm('确认删除？')){await dbd('ingredient',id);loadKCIngredients();t('已删除')}}
+
+// Product Categories
+async function saveProdCat(){
+  const name=document.getElementById('m-prodcat-name').value.trim();
+  if(!name){t('请输入分类名称');return}
+  await dba('prodcat',{name:name,note:document.getElementById('m-prodcat-note').value.trim()});
+  closeModal('modal-prodcat');loadProdCats();t('分类已保存');
+}
+async function loadProdCats(){
+  const items=await dbg('prodcat');const list=document.getElementById('kc-prodcat-list');
+  if(!items.length){list.innerHTML='<div class="empty">暂无分类，点右下角+添加</div>';return}
+  list.innerHTML=items.map(i=>`<div class="list-item"><div class="info"><div class="title">${i.name}</div><div class="sub">${i.note||''}</div></div><button class="btn btn-sm btn-r" onclick="event.stopPropagation();deleteProdCat(${i.id})">删</button></div>`).join('');
+}
+async function deleteProdCat(id){if(confirm('确认删除？')){await dbd('prodcat',id);loadProdCats();t('已删除')}}
+async function refreshProdCatDropdown(){
+  const cats=await dbg('prodcat');
+  const sel=document.getElementById('m-prod-cat');
+  if(sel)sel.innerHTML='<option value="">选择分类</option>'+cats.map(c=>`<option value="${c.name}">${c.name}</option>`).join('');
+}
+
+// Product CRUD
+async function editProduct(id){const i=await db1('product',id);if(i){document.getElementById('m-prod-id').value=i.id;document.getElementById('modal-kc-prod-title').textContent='编辑产品';document.getElementById('m-prod-name').value=i.name||'';document.getElementById('m-prod-cat').value=i.cat||'';document.getElementById('m-prod-price').value=i.price||'';document.getElementById('m-prod-note').value=i.note||'';openModal('modal-kc-prod')}}
+async function saveProduct(){
+  const id=document.getElementById('m-prod-id').value;const data={name:document.getElementById('m-prod-name').value.trim(),cat:document.getElementById('m-prod-cat').value.trim(),price:parseFloat(document.getElementById('m-prod-price').value)||0,note:document.getElementById('m-prod-note').value.trim()};
+  if(!data.name){t('请输入产品名称');return}
+  if(id){data.id=parseInt(id);await dbp('product',data)}else{await dba('product',data)}
+  closeModal('modal-kc-prod');loadKCProducts();t('已保存');
+}
+async function deleteProduct(id){if(confirm('确认删除？')){await dbd('product',id);loadKCProducts();t('已删除')}}
+// BOM
+async function saveBOM(){const data={productId:parseInt(document.getElementById('m-bom-prod').value)||0,ingredientId:parseInt(document.getElementById('m-bom-ing').value)||0,qty:parseFloat(document.getElementById('m-bom-qty').value)||0,unit:document.getElementById('m-bom-unit').value.trim(),note:document.getElementById('m-bom-note').value.trim()};if(!data.productId||!data.ingredientId){t('请选择产品和食材');return}await dba('bom',data);closeModal('modal-kc-bom');loadKCBOMs();t('已保存')}
+async function deleteBOM(id){if(confirm('确认删除？')){await dbd('bom',id);loadKCBOMs();t('已删除')}}
+// Stock IO
+async function stockIO(ingId,type){document.getElementById('m-io-type').value=type;document.getElementById('m-io-ing').value=ingId;document.getElementById('m-io-qty').value='';document.getElementById('m-io-date').value=new Date().toISOString().split('T')[0];document.getElementById('m-io-note').value='';refreshDrops();openModal('modal-stock-io')}
+async function saveStockIO(){
+  const ingId=parseInt(document.getElementById('m-io-ing').value);const type=document.getElementById('m-io-type').value;const qty=parseFloat(document.getElementById('m-io-qty').value)||0;
+  if(!qty){t('请输入数量');return}
+  const ing=await db1('ingredient',ingId);if(ing){ing.currentStock=Math.max(0,(ing.currentStock||0)+(type==='入库'?qty:-qty));await dbp('ingredient',ing)}
+  await dba('stockio',{ingredientId:ingId,type,qty,date:document.getElementById('m-io-date').value,note:document.getElementById('m-io-note').value.trim()});
+  closeModal('modal-stock-io');loadKCIngredients();t(type+'成功');
+}
+// Production Record
+async function openProdRecModal(){document.getElementById('m-prodrec-qty').value='';document.getElementById('m-prodrec-date').value=new Date().toISOString().split('T')[0];document.getElementById('m-prodrec-note').value='';document.getElementById('m-prodrec-preview').innerHTML='';refreshDrops();openModal('modal-prodrec')}
+async function previewProdCost(){
+  const pid=parseInt(document.getElementById('m-prodrec-prod').value);const qty=parseInt(document.getElementById('m-prodrec-qty').value)||0;const preview=document.getElementById('m-prodrec-preview');
+  if(!pid||!qty){preview.innerHTML='';return}
+  const boms=await dbg('bom');const ings=await dbg('ingredient');const prod=await db1('product',pid);
+  const rb=boms.filter(b=>b.productId===pid);if(!rb.length){preview.innerHTML='该产品暂无配方';return}
+  let details=[];rb.forEach(b=>{const ing=ings.find(i=>i.id===b.ingredientId);if(ing)details.push(`${ing.name}:${(b.qty||0)*qty}${b.unit||''}`)});
+  preview.innerHTML='消耗: '+details.join(' · ')+`<br>预计${qty}份${prod?` · 售价¥${prod.price}/份`:' · 成本待核算'}`;
+}
+async function saveProdRec(){
+  const pid=parseInt(document.getElementById('m-prodrec-prod').value)||0;const qty=parseInt(document.getElementById('m-prodrec-qty').value)||0;
+  if(!pid||!qty){t('请选择产品并输入数量');return}
+  const prod=await db1('product',pid);const boms=await dbg('bom');const date=document.getElementById('m-prodrec-date').value;
+  let totalCost=0;
+  for(const b of boms.filter(b=>b.productId===pid)){
+    const ing=await db1('ingredient',b.ingredientId);if(ing){const consume=(b.qty||0)*qty;ing.currentStock=Math.max(0,(ing.currentStock||0)-consume);await dbp('ingredient',ing);await dba('stockio',{ingredientId:b.ingredientId,type:'出库',qty:consume,date,note:'生产'+prod.name+'自动扣减'});totalCost+=consume*5}
+  }
+  await dba('prodrec',{productId:pid,productName:prod?prod.name:'',qty,date,note:document.getElementById('m-prodrec-note').value.trim(),estimatedCost:totalCost});
+  closeModal('modal-prodrec');loadProdRecList();loadKCIngredients();t('已保存，食材已扣减');
+}
+async function deleteProdRec(id){if(confirm('确认删除？已扣减食材不会恢复')){await dbd('prodrec',id);loadProdRecList();t('已删除')}}
+
+// ====== TAB 4: 报表 ======
+async function loadReport(){
+  const month=document.getElementById('bb-month').value||new Date().toISOString().split('T')[0].substring(0,7);
+  const active=document.querySelector('#bb-subtabs button.active');const tab=active?active.textContent:'收支月报';const c=document.getElementById('bb-content');
+  if(tab.includes('收支')){
+    const items=(await dbg('sz')).filter(i=>gm(i.date)===month);let ti=0,to=0;items.forEach(i=>{if(i.type==='收入')ti+=i.amount;else to+=i.amount});
+    const byCat={};items.forEach(i=>{const k=i.cat||'其他';byCat[k]=(byCat[k]||0)+i.amount});
+    c.innerHTML=`<div class="summary"><div><div class="num" style="color:var(--g)">¥${f(ti)}</div><div class="lbl">总收入</div></div><div><div class="num" style="color:var(--r)">¥${f(to)}</div><div class="lbl">总支出</div></div><div><div class="num" style="color:${ti>=to?'var(--g)':'var(--r)'}">¥${f(ti-to)}</div><div class="lbl">盈亏</div></div></div><div class="card"><h3>分类汇总</h3>${Object.entries(byCat).map(([k,v])=>`<div class="list-item"><span>${k}</span><span class="val">¥${f(v)}</span></div>`).join('')||'<div class="empty">无数据</div>'}</div><div class="card"><h3>流水明细</h3>${items.length?items.sort((a,b)=>b.date>a.date?1:-1).map(i=>`<div class="list-item"><div class="info"><div class="title"><span class="badge ${i.type==='收入'?'badge-in':'badge-out'}">${i.type}</span> ${i.cat||''}</div><div class="sub">${i.date} · ${i.person||''} ${i.note||''}</div></div><div class="val ${i.type==='收入'?'in':'out'}">¥${f(i.amount)}</div></div>`).join(''):'<div class="empty">本月无记录</div>'}</div>`;
+  }else if(tab.includes('薪资')){
+    const ygs=await dbg('yg');const leaves=await dbg('leave');const dim=new Date(parseInt(month.split('-')[0]),parseInt(month.split('-')[1]),0).getDate();
+    c.innerHTML='<div class="card"><h3>'+month+' 薪资报表</h3>'+ygs.map(yg=>{const yl=leaves.filter(l=>l.empId===yg.id&&gm(l.startDate)===month);const ld=yl.reduce((s,l)=>s+(l.days||0),0);const ad=dim-ld;const sal=yg.salary/dim*ad;return`<div class="list-item"><div class="info"><div class="title">${yg.name} (${yg.role||''})</div><div class="sub">出勤${ad}天 · 请假${ld}天</div></div><div class="val" style="color:var(--o)">¥${f(sal)}</div></div>`}).join('')+'</div>';
+  }else if(tab.includes('库存')){
+    const items=await dbg('ingredient');const ios=await dbg('stockio');
+    c.innerHTML='<div class="card"><h3>库存台账 ('+month+')</h3>'+items.map(i=>{const mi=ios.filter(io=>io.ingredientId===i.id&&gm(io.date)===month);const iq=mi.filter(io=>io.type==='入库').reduce((s,io)=>s+(io.qty||0),0);const oq=mi.filter(io=>io.type==='出库').reduce((s,io)=>s+(io.qty||0),0);return`<div class="list-item"><div class="info"><div class="title">${i.name}</div><div class="sub">入${iq} · 出${oq} · 库存${i.currentStock||0}${i.unit||''}</div></div><div class="val">${i.currentStock||0}${i.unit||''}</div></div>`}).join('')+'</div>';
+  }
+}
+function bbSubTab(t){const btns=document.querySelectorAll('#bb-subtabs button');btns.forEach(b=>b.classList.remove('active'));btns[{sz:0,salary:1,stock:2}[t]].classList.add('active');loadReport()}
+
+// Budget
+async function setBudget(){const now=new Date().toISOString().split('T')[0].substring(0,7);document.getElementById('m-budget-month').value=now;document.getElementById('m-budget-amt').value='';const bs=await dbg('budget');const ex=bs.find(b=>b.month===now);if(ex)document.getElementById('m-budget-amt').value=ex.amount;openModal('modal-budget')}
+async function saveBudget(){const month=document.getElementById('m-budget-month').value;const amt=parseFloat(document.getElementById('m-budget-amt').value)||0;if(!month||!amt){t('请选择月份和金额');return}const bs=await dbg('budget');const ex=bs.find(b=>b.month===month);if(ex){ex.amount=amt;await dbp('budget',ex)}else{await dba('budget',{month,amount:amt})}closeModal('modal-budget');loadSZList();t('预算已保存')}
+
+// CSV Export
+async function exportCSV(){const data=await dbg('sz');let csv='﻿类型,分类,金额,日期,支付方式,经手人,备注\n';data.forEach(i=>{csv+=`${i.type},${i.cat||''},${i.amount},${i.date||''},${i.pay||''},${i.person||''},${i.note||''}\n`});const b=new Blob([csv],{type:'text/csv'});const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='收支数据_'+new Date().toISOString().split('T')[0]+'.csv';a.click();t('导出成功')}
+
+// ====== LOGIN ======
+const PIN='123456';let loginInput='';
+function renderNumpad(){var p=document.getElementById('loginNumpad');if(!p)return;p.innerHTML='';for(var i=1;i<=9;i++){var b=document.createElement('button');b.textContent=i;b.onclick=(function(n){return function(){loginTap(n)}})(i);p.appendChild(b)}var eb=document.createElement('button');eb.className='empty';eb.disabled=true;p.appendChild(eb);var zb=document.createElement('button');zb.textContent='0';zb.onclick=function(){loginTap(0)};p.appendChild(zb);var db=document.createElement('button');db.className='del';db.textContent='删除';db.onclick=loginDel;p.appendChild(db)}renderNumpad();
+function loginTap(n){if(loginInput.length>=6)return;loginInput+=n;updateDots();if(loginInput.length===6)checkLogin()}
+function loginDel(){loginInput=loginInput.slice(0,-1);updateDots();document.getElementById('loginMsg').textContent=''}
+function updateDots(){document.querySelectorAll('#loginDots .login-dot').forEach((d,i)=>d.classList.toggle('filled',i<loginInput.length))}
+function checkLogin(){if(loginInput===PIN){document.getElementById('loginPage').classList.add('hidden');document.getElementById('loginMsg').textContent='';afterLogin()}else{document.getElementById('loginMsg').textContent='密码错误';setTimeout(()=>{loginInput='';updateDots();document.getElementById('loginMsg').textContent=''},800)}}
+function afterLogin(){sessionStorage.setItem('loggedIn','1');initApp()}
+if(sessionStorage.getItem('loggedIn')==='1'){document.getElementById('loginPage').classList.add('hidden');initApp()}
+
+// ====== INIT ======
+async function initApp(){
+  const now=new Date().toISOString().split('T')[0].substring(0,7);
+  document.getElementById('sz-filter-month').value=now;
+  document.getElementById('bb-month').value=now;
+  document.getElementById('m-sz-date').value=new Date().toISOString().split('T')[0];
+  loadSZList();
+  setInterval(()=>{document.getElementById('clock').textContent=new Date().toLocaleTimeString('zh-CN',{hour12:false})},1000);
+}
+</script>
+</body>
+</html>
