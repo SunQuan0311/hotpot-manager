@@ -103,7 +103,7 @@ input:focus,select:focus{outline:none;border-color:var(--o);background:#fff}
     <div class="login-emoji">🍲</div>
     <h2>七喜呱呱老火锅</h2>
     <div class="sub">宁武店 · 请输入密码</div>
-    <div class="login-dots" id="loginDots"><div class="login-dot"></div><div class="login-dot"></div><div class="login-dot"></div><div class="login-dot"></div><div class="login-dot"></div><div class="login-dot"></div></div>
+    <div style="margin-bottom:16px;font-size:1.5rem;letter-spacing:8px;color:#FFD700;min-height:36px" id="loginDisplay"></div>
     <div class="login-numpad">
       <button onclick="loginTap(1)">1</button><button onclick="loginTap(2)">2</button><button onclick="loginTap(3)">3</button>
       <button onclick="loginTap(4)">4</button><button onclick="loginTap(5)">5</button><button onclick="loginTap(6)">6</button>
@@ -565,14 +565,12 @@ const PIN='123456';let loginInput='';
 function loginTap(n){
   if(loginInput.length>=6)return;
   loginInput+=String(n);
-  var dots=document.querySelectorAll('#loginDots .login-dot');
-  for(var i=0;i<dots.length;i++){if(i<loginInput.length)dots[i].classList.add('filled');else dots[i].classList.remove('filled')}
+  document.getElementById('loginDisplay').textContent=loginInput;
   if(loginInput.length===6)checkLogin();
 }
 function loginDel(){
   loginInput=loginInput.slice(0,-1);
-  var dots=document.querySelectorAll('#loginDots .login-dot');
-  for(var i=0;i<dots.length;i++){if(i<loginInput.length)dots[i].classList.add('filled');else dots[i].classList.remove('filled')}
+  document.getElementById('loginDisplay').textContent=loginInput||'';
   document.getElementById('loginMsg').textContent='';
 }
 function checkLogin(){
@@ -580,13 +578,10 @@ function checkLogin(){
     document.getElementById('loginPage').classList.add('hidden');
     afterLogin();
   }else{
-    document.getElementById('loginMsg').textContent='密码错误，重试';
+    document.getElementById('loginMsg').textContent='密码错误';
     loginInput='';
-    setTimeout(function(){
-      var dots=document.querySelectorAll('#loginDots .login-dot');
-      for(var i=0;i<dots.length;i++)dots[i].classList.remove('filled');
-      document.getElementById('loginMsg').textContent='';
-    },800);
+    document.getElementById('loginDisplay').textContent='';
+    setTimeout(function(){document.getElementById('loginMsg').textContent=''},800);
   }
 }
 function afterLogin(){try{sessionStorage.setItem('loggedIn','1')}catch(e){}initApp()}
