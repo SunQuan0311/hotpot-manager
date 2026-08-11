@@ -391,9 +391,8 @@ async function loadSZList(){
   document.getElementById('sz-bal').textContent=f(ti-to);
   document.getElementById('sz-bal').style.color=ti>=to?'var(--g)':'var(--r)';
   const bs=await dbg('budget');const b=bs.find(x=>x.month===month);
-  const be=document.getElementById('sz-budget-bar');
-  if(b)be.innerHTML='月预算: ¥'+f(b.amount)+' | 已用: ¥'+f(to)+' | '+(to>b.amount?'<span style="color:var(--r)">超支 ¥'+f(to-b.amount)+'</span>':'<span style="color:var(--g)">剩余 ¥'+f(b.amount-to)+'</span>');
-  else be.innerHTML='月预算：未设置（点击设置）';
+  var be=document.getElementById('sz-budget-bar');
+  if(be){if(b)be.innerHTML='月预算: ¥'+f(b.amount)+' | 已用: ¥'+f(to)+' | '+(to>b.amount?'<span style="color:var(--r)">超支 ¥'+f(to-b.amount)+'</span>':'<span style="color:var(--g)">剩余 ¥'+f(b.amount-to)+'</span>');else be.innerHTML='月预算：未设置（点击设置）';}
   const list=document.getElementById('sz-list');
   if(!items.length){list.innerHTML='<div class="empty">暂无收支记录，点右下角+添加</div>';return}
   list.innerHTML=items.map(function(i){return '<div class="list-item" onclick="editSZ('+i.id+')"><div class="info"><div class="title"><span class="badge '+(i.type==='收入'?'badge-in':'badge-out')+'">'+i.type+'</span> '+ (i.cat||'') +'</div><div class="sub">'+fd(i.date)+(i.pay?' · '+i.pay:'')+' · '+(i.person||'')+' '+(i.note||'')+'</div></div><div class="val '+(i.type==='收入'?'in':'out')+'">'+(i.type==='收入'?'+':'-')+'¥'+f(i.amount)+'</div></div>'}).join('');
