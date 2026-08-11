@@ -334,20 +334,20 @@ function _idbd(s,i){return new Promise(function(r){_idbOpen().then(function(db){
 async function syncOffline(){if(offlineQueue.length===0)return;t('同步离线数据...');for(var i=0;i<offlineQueue.length;i++){try{var item=offlineQueue[i];await fetch(SB_URL+'/'+item.s,{method:'POST',headers:{...SB_HEADERS,'Prefer':'return=representation'},body:JSON.stringify(item.d)})}catch(e){}}offlineQueue=[];t('同步完成')}
 async function odb(){return true}
 async function dba(s,d){
-  if(!isOnline){var lid=await _idba(s,d);offlineQueue.push({s:s,d:d});return lid}
-  try{var r=await fetch(SB_URL+'/'+s,{method:'POST',headers:{...SB_HEADERS,'Prefer':'return=representation'},body:JSON.stringify(d)});if(!r.ok)throw new Error();var j=await r.json();return Array.isArray(j)?j[0]?.id:j?.id}catch(e){isOnline=false;return dba(s,d)}}
+  if(!navigator.onLine){var lid=await _idba(s,d);offlineQueue.push({s:s,d:d});return lid}
+  try{var r=await fetch(SB_URL+'/'+s,{method:'POST',headers:{...SB_HEADERS,'Prefer':'return=representation'},body:JSON.stringify(d)});if(!r.ok)throw new Error();var j=await r.json();return Array.isArray(j)?j[0]?.id:j?.id}catch(e){t('网络异常，请重试');throw e}}
 async function dbp(s,d){
-  if(!isOnline){await _idbp(s,d);return d.id}
-  try{var id=d.id;delete d.id;var r=await fetch(SB_URL+'/'+s+'?id=eq.'+id,{method:'PATCH',headers:{...SB_HEADERS,'Prefer':'return=representation'},body:JSON.stringify(d)});if(!r.ok)throw new Error();return id}catch(e){isOnline=false;return dbp(s,d)}}
+  if(!navigator.onLine){await _idbp(s,d);return d.id}
+  try{var id=d.id;delete d.id;var r=await fetch(SB_URL+'/'+s+'?id=eq.'+id,{method:'PATCH',headers:{...SB_HEADERS,'Prefer':'return=representation'},body:JSON.stringify(d)});if(!r.ok)throw new Error();return id}catch(e){t('网络异常，请重试');throw e}}
 async function dbg(s){
-  if(!isOnline)return _idbg(s)
-  try{var r=await fetch(SB_URL+'/'+s+'?select=*&order=id.desc',{headers:SB_HEADERS});if(!r.ok)throw new Error();return await r.json()}catch(e){isOnline=false;return dbg(s)}}
+  if(!navigator.onLine)return _idbg(s)
+  try{var r=await fetch(SB_URL+'/'+s+'?select=*&order=id.desc',{headers:SB_HEADERS});if(!r.ok)throw new Error();return await r.json()}catch(e){t('加载失败，请刷新');return[]}}
 async function db1(s,i){
-  if(!isOnline){var all=await _idbg(s);return all.find(function(x){return x.id===i})}
-  try{var r=await fetch(SB_URL+'/'+s+'?id=eq.'+i+'&select=*',{headers:SB_HEADERS});if(!r.ok)throw new Error();var j=await r.json();return j?.[0]}catch(e){isOnline=false;return db1(s,i)}}
+  if(!navigator.onLine){var all=await _idbg(s);return all.find(function(x){return x.id===i})}
+  try{var r=await fetch(SB_URL+'/'+s+'?id=eq.'+i+'&select=*',{headers:SB_HEADERS});if(!r.ok)throw new Error();var j=await r.json();return j?.[0]}catch(e){t('加载失败');return null}}
 async function dbd(s,i){
-  if(!isOnline){await _idbd(s,i);return}
-  try{var r=await fetch(SB_URL+'/'+s+'?id=eq.'+i,{method:'DELETE',headers:SB_HEADERS});if(!r.ok)throw new Error()}catch(e){isOnline=false;await dbd(s,i)}}
+  if(!navigator.onLine){await _idbd(s,i);return}
+  try{var r=await fetch(SB_URL+'/'+s+'?id=eq.'+i,{method:'DELETE',headers:SB_HEADERS});if(!r.ok)throw new Error()}catch(e){t('删除失败，请重试');throw e}}
 
 // ====== UI HELPERS ======
 function showLoading(){document.getElementById('loading').classList.add('show')}
@@ -419,7 +419,7 @@ async function saveSZ(){
   const data={type:document.getElementById('m-sz-type').value,cat:document.getElementById('m-sz-cat').value,amount:parseFloat(document.getElementById('m-sz-amt').value)||0,date:document.getElementById('m-sz-date').value,pay:document.getElementById('m-sz-pay').value,person:document.getElementById('m-sz-person').value.trim(),note:document.getElementById('m-sz-note').value.trim(),img:imgData};
   if(!data.type||!data.amount){t('请填写类型和金额');return}
   showLoading();
-  if(id){data.id=parseInt(id);await dbp('sz',data)}else{await dba('sz',data)}
+  try{if(id){data.id=parseInt(id);await dbp('sz',data)}else{await dba('sz',data)}}catch(e){hideLoading();return}
   logOp('收支录入',data.type+' '+data.cat+' ¥'+data.amount);
   hideLoading();closeModal('modal-sz');loadSZList();t('已保存');
 }
