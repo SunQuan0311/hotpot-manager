@@ -216,8 +216,6 @@ input:focus,select:focus{outline:none;border-color:var(--o);background:#fff}
   <select id="m-sz-pay"><option value="">支付方式</option><option value="微信">微信</option><option value="支付宝">支付宝</option><option value="现金">现金</option><option value="银行卡">银行卡</option></select>
   <input id="m-sz-person" placeholder="经手人">
   <input id="m-sz-note" placeholder="备注">
-  <input type="file" id="m-sz-img" accept="image/*" style="font-size:.7rem" onchange="previewSZImg()">
-  <div id="m-sz-img-preview" style="margin-bottom:6px"></div>
   <div class="row"><button class="btn btn-o btn-block" onclick="saveSZ()">保存</button><button class="btn btn-o1 btn-block" onclick="closeModal('modal-sz')">取消</button></div>
   <input type="hidden" id="m-sz-id">
 </div></div>
@@ -414,9 +412,7 @@ async function openSZModal(id){
 }
 async function saveSZ(){
   const id=document.getElementById('m-sz-id').value;
-  var imgPreview=document.getElementById('m-sz-img-preview').querySelector('img');
-  var imgData=imgPreview?imgPreview.src:'';
-  const data={type:document.getElementById('m-sz-type').value,cat:document.getElementById('m-sz-cat').value,amount:parseFloat(document.getElementById('m-sz-amt').value)||0,date:document.getElementById('m-sz-date').value,pay:document.getElementById('m-sz-pay').value,person:document.getElementById('m-sz-person').value.trim(),note:document.getElementById('m-sz-note').value.trim(),img:imgData};
+  const data={type:document.getElementById('m-sz-type').value,cat:document.getElementById('m-sz-cat').value,amount:parseFloat(document.getElementById('m-sz-amt').value)||0,date:document.getElementById('m-sz-date').value,pay:document.getElementById('m-sz-pay').value,person:document.getElementById('m-sz-person').value.trim(),note:document.getElementById('m-sz-note').value.trim()};
   if(!data.type||!data.amount){t('请填写类型和金额');return}
   showLoading();
   try{if(id){data.id=parseInt(id);await dbp('sz',data)}else{await dba('sz',data)}}catch(e){hideLoading();return}
