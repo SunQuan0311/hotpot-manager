@@ -652,16 +652,18 @@ function loginTap(n){if(loginInput.length>=6)return;loginInput+=n;updateDots();i
 function loginDel(){loginInput=loginInput.slice(0,-1);updateDots();document.getElementById('loginMsg').textContent=''}
 function updateDots(){document.querySelectorAll('#loginDots .login-dot').forEach((d,i)=>d.classList.toggle('filled',i<loginInput.length))}
 function checkLogin(){if(loginInput===PIN){document.getElementById('loginPage').classList.add('hidden');document.getElementById('loginMsg').textContent='';afterLogin()}else{document.getElementById('loginMsg').textContent='密码错误';setTimeout(()=>{loginInput='';updateDots();document.getElementById('loginMsg').textContent=''},800)}}
-function afterLogin(){sessionStorage.setItem('loggedIn','1');initApp()}
-if(sessionStorage.getItem('loggedIn')==='1'){document.getElementById('loginPage').classList.add('hidden');initApp()}
+function afterLogin(){initApp()}
 
 // ====== INIT ======
 async function initApp(){
+  try{
   const now=new Date().toISOString().split('T')[0].substring(0,7);
-  document.getElementById('sz-filter-month').value='';
-  document.getElementById('bb-month').value=now;
-  document.getElementById('m-sz-date').value=new Date().toISOString().split('T')[0];
-  loadSZList();
+  var el=document.getElementById('sz-filter-month');if(el)el.value='';
+  el=document.getElementById('bb-month');if(el)el.value=now;
+  el=document.getElementById('m-sz-date');if(el)el.value=new Date().toISOString().split('T')[0];
+  showLoading();
+  await loadSZList();
+  hideLoading();
   setTimeout(async()=>{const ing=await dbg('ingredient');const low=ing.filter(i=>i.currentStock>0&&i.warnLevel>0&&i.currentStock<=i.warnLevel);if(low.length)t('低库存预警: '+low.map(i=>i.name).join('、'))},2000);
   setInterval(()=>{document.getElementById('clock').textContent=new Date().toLocaleTimeString('zh-CN',{hour12:false})},1000);
   // Smart notifications every 5 min
@@ -669,6 +671,7 @@ async function initApp(){
   setInterval(checkAlerts,43200000);
   // Daily settlement prompt
   checkDailySettlement();
+  }catch(e){hideLoading();document.getElementById('sz-list').innerHTML='<div class="empty">加载失败：'+e.message+'</div>'}
 }
 async function checkAlerts(){
   try{
