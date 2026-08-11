@@ -657,7 +657,7 @@ if(sessionStorage.getItem('loggedIn')==='1'){document.getElementById('loginPage'
 // ====== INIT ======
 async function initApp(){
   const now=new Date().toISOString().split('T')[0].substring(0,7);
-  document.getElementById('sz-filter-month').value=now;
+  document.getElementById('sz-filter-month').value='';
   document.getElementById('bb-month').value=now;
   document.getElementById('m-sz-date').value=new Date().toISOString().split('T')[0];
   loadSZList();
